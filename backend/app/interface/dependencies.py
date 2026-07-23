@@ -16,6 +16,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.application.services.analytics_service import AnalyticsService
 from app.application.services.auth_service import AuthService
+from app.application.services.chat_service import ChatService
+from app.application.services.document_service import DocumentService
 from app.application.services.prediction_service import PredictionService
 from app.application.services.user_service import UserService
 from app.core.container import Container
@@ -58,6 +60,20 @@ def get_analytics_service(
 ) -> AnalyticsService:
     """Provide a wired :class:`AnalyticsService`."""
     return container.analytics_service
+
+
+def get_document_service(
+    container: Annotated[Container, Depends(get_container)],
+) -> DocumentService:
+    """Provide a wired :class:`DocumentService`."""
+    return container.document_service
+
+
+def get_chat_service(
+    container: Annotated[Container, Depends(get_container)],
+) -> ChatService:
+    """Provide a wired :class:`ChatService`."""
+    return container.chat_service
 
 
 async def get_current_user(

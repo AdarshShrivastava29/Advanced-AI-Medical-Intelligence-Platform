@@ -17,6 +17,10 @@ const PredictionDetailsPage = lazy(() =>
 );
 const HistoryPage = lazy(() => import('@/pages/HistoryPage').then((m) => ({ default: m.HistoryPage })));
 const AnalyticsPage = lazy(() => import('@/pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
+const KnowledgeAssistantPage = lazy(() =>
+  import('@/pages/KnowledgeAssistantPage').then((m) => ({ default: m.KnowledgeAssistantPage })),
+);
+const DocumentsPage = lazy(() => import('@/pages/DocumentsPage').then((m) => ({ default: m.DocumentsPage })));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
@@ -56,6 +60,8 @@ export function AppRouter() {
           <Route path="/predict" element={<PredictionPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/history/:id" element={<PredictionDetailsPage />} />
+          <Route path="/assistant" element={<KnowledgeAssistantPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/profile" element={<ProfilePage />} />

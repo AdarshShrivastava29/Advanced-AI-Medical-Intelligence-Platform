@@ -108,3 +108,44 @@ export interface AnalyticsSummary {
   disease_distribution: DistributionBucket[];
   confidence_distribution: DistributionBucket[];
 }
+
+export interface DocumentResponse {
+  id: string;
+  filename: string;
+  title: string;
+  source: string;
+  status: 'uploaded' | 'processing' | 'indexed' | 'failed';
+  pages: number;
+  chunk_count: number;
+  version: number;
+  embedding_provider: string | null;
+  vector_db: string | null;
+  error: string | null;
+  created_at: string;
+}
+
+export interface Citation {
+  index: number;
+  document_id: string;
+  filename: string;
+  chunk_id: string;
+  page: number;
+  score: number;
+  snippet: string;
+}
+
+export interface ChatResponse {
+  answer: string;
+  grounded: boolean;
+  citations: Citation[];
+  message_id: string;
+}
+
+export interface ChatMessageItem {
+  id: string;
+  role: 'user' | 'assistant';
+  message: string;
+  grounded: boolean;
+  citations: Citation[];
+  created_at: string;
+}

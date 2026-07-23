@@ -92,4 +92,11 @@ class MongoDatabase:
             partialFilterExpression={"idempotency_key": {"$type": "string"}},
         )
         await db["reports"].create_index("prediction_id")
+        # RAG knowledge base.
+        await db["documents"].create_index("content_hash")
+        await db["documents"].create_index([("filename", 1), ("version", -1)])
+        await db["documents"].create_index("created_at")
+        await db["embeddings_metadata"].create_index("document_id")
+        await db["embeddings_metadata"].create_index("vector_id", unique=True)
+        await db["chat_history"].create_index([("user_id", 1), ("created_at", 1)])
         logger.info("db.indexes.ensured")

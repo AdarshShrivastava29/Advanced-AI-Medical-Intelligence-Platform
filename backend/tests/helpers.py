@@ -27,3 +27,16 @@ def make_png(*, colorful: bool = False, size: int = 64) -> bytes:
     buffer = io.BytesIO()
     Image.fromarray(arr).save(buffer, format="PNG")
     return buffer.getvalue()
+
+
+def make_pdf(text: str, *, pages: int = 1) -> bytes:
+    """Return a minimal valid PDF containing ``text`` on each page (PyMuPDF)."""
+    import fitz
+
+    doc = fitz.open()
+    for _ in range(pages):
+        page = doc.new_page()
+        page.insert_text((72, 72), text, fontsize=11)
+    data: bytes = doc.tobytes()
+    doc.close()
+    return data

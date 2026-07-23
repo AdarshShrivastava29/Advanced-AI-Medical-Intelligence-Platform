@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from app.application.services.analytics_service import AnalyticsService
 from app.application.services.auth_service import AuthService
+from app.application.services.chat_service import ChatService
+from app.application.services.document_service import DocumentService
 from app.application.services.prediction_service import PredictionService
 from app.application.services.report_service import ReportService
 from app.application.services.user_service import UserService
@@ -19,25 +21,36 @@ from app.core.exceptions import DependencyUnavailableError
 from app.core.logging import get_logger
 from app.domain.ports.analytics import AnalyticsRepository
 from app.domain.ports.cache_provider import CacheProvider
+from app.domain.ports.embedding_provider import EmbeddingProvider
 from app.domain.ports.file_storage import FileStorage
 from app.domain.ports.inference import InferenceEngine
 from app.domain.ports.llm_provider import AIProvider
+from app.domain.ports.rag import RagEngine
 from app.domain.ports.repositories import (
+    ChatMessageRepository,
+    DocumentChunkRepository,
+    DocumentRepository,
     PredictionRepository,
     RefreshTokenRepository,
     ReportRepository,
     UserRepository,
 )
 from app.domain.ports.task_queue import TaskQueue
+from app.domain.ports.vector_store import VectorStore
 from app.infrastructure.db.analytics_repository import MongoAnalyticsRepository
+from app.infrastructure.db.chat_repository import MongoChatMessageRepository
 from app.infrastructure.db.client import MongoDatabase
+from app.infrastructure.db.document_chunk_repository import MongoDocumentChunkRepository
+from app.infrastructure.db.document_repository import MongoDocumentRepository
 from app.infrastructure.db.prediction_repository import MongoPredictionRepository
 from app.infrastructure.db.refresh_token_repository import MongoRefreshTokenRepository
 from app.infrastructure.db.report_repository import MongoReportRepository
 from app.infrastructure.db.user_repository import MongoUserRepository
 from app.infrastructure.providers.cache.factory import get_cache_provider
+from app.infrastructure.providers.embeddings.factory import get_embedding_provider
 from app.infrastructure.providers.llm.factory import get_llm_provider
 from app.infrastructure.providers.task_queue.factory import get_task_queue
+from app.infrastructure.providers.vector_db.factory import get_vector_store
 from app.infrastructure.storage.factory import get_file_storage
 
 logger = get_logger(__name__)
@@ -59,6 +72,9 @@ class Container:
         self.file_storage: FileStorage = get_file_storage(settings)
         self._llm_provider: AIProvider | None = None
         self._inference_engine: InferenceEngine | None = None
+        self._embedding_provider: EmbeddingProvider | None = None
+        self._vector_store: VectorStore | None = None
+        self._rag_engine: RagEngine | None = None
 
     # ------------------------------------------------------------------ #
     # Lifecycle
@@ -75,6 +91,8 @@ class Container:
             await self.database.connect()
         except DependencyUnavailableError as exc:
             logger.error("container.startup.db_unavailable", error=str(exc))
+        self._register_background_jobs()
+        await self._load_rag_index()
         logger.info(
             "container.startup.ok",
             llm_provider=self.settings.llm_provider,
@@ -83,6 +101,26 @@ class Container:
             cache_provider=self.cache.name,
             task_queue=self.task_queue.name,
         )
+
+    def _register_background_jobs(self) -> None:
+        """Register in-process job handlers (the Celery worker registers its own)."""
+        from app.application.services.document_service import INGEST_JOB
+        from app.infrastructure.providers.task_queue.inprocess_queue import InProcessTaskQueue
+        from app.workers.ingest import make_ingest_handler
+
+        if isinstance(self.task_queue, InProcessTaskQueue):
+            self.task_queue.register(
+                INGEST_JOB,
+                make_ingest_handler(self.document_repository, self.rag_engine),
+            )
+            logger.info("container.jobs.registered", job=INGEST_JOB)
+
+    async def _load_rag_index(self) -> None:
+        """Restore the persisted vector index (best-effort; non-fatal)."""
+        try:
+            await self.rag_engine.load()
+        except Exception:
+            logger.warning("container.rag.load_skipped")
 
     async def shutdown(self) -> None:
         """Close external connections. Called from the application lifespan."""
@@ -116,6 +154,21 @@ class Container:
     def analytics_repository(self) -> AnalyticsRepository:
         """Build an :class:`AnalyticsRepository` over the ``predictions`` collection."""
         return MongoAnalyticsRepository(self.database.database["predictions"])
+
+    @property
+    def document_repository(self) -> DocumentRepository:
+        """Build a :class:`DocumentRepository` bound to ``documents``."""
+        return MongoDocumentRepository(self.database.database["documents"])
+
+    @property
+    def document_chunk_repository(self) -> DocumentChunkRepository:
+        """Build a :class:`DocumentChunkRepository` bound to ``embeddings_metadata``."""
+        return MongoDocumentChunkRepository(self.database.database["embeddings_metadata"])
+
+    @property
+    def chat_repository(self) -> ChatMessageRepository:
+        """Build a :class:`ChatMessageRepository` bound to ``chat_history``."""
+        return MongoChatMessageRepository(self.database.database["chat_history"])
 
     # ------------------------------------------------------------------ #
     # Services (Service layer)
@@ -159,6 +212,22 @@ class Container:
             prediction_repository=self.prediction_repository,
         )
 
+    @property
+    def document_service(self) -> DocumentService:
+        """Build the :class:`DocumentService` (upload/validate/version/enqueue)."""
+        return DocumentService(
+            document_repository=self.document_repository,
+            rag_engine=self.rag_engine,
+            file_storage=self.file_storage,
+            task_queue=self.task_queue,
+            settings=self.settings,
+        )
+
+    @property
+    def chat_service(self) -> ChatService:
+        """Build the :class:`ChatService` for grounded knowledge-base Q&A."""
+        return ChatService(rag_engine=self.rag_engine, chat_repository=self.chat_repository)
+
     # ------------------------------------------------------------------ #
     # Providers on demand (used by later phases; abstractions verified now)
     # ------------------------------------------------------------------ #
@@ -181,6 +250,42 @@ class Container:
 
             self._inference_engine = get_inference_engine(self.settings)
         return self._inference_engine
+
+    @property
+    def embedding_provider(self) -> EmbeddingProvider:
+        """Return the ENV-selected :class:`EmbeddingProvider`, constructed once."""
+        if self._embedding_provider is None:
+            self._embedding_provider = get_embedding_provider(self.settings)
+        return self._embedding_provider
+
+    @property
+    def vector_store(self) -> VectorStore:
+        """Return the ENV-selected :class:`VectorStore`, sized to the embedding dim."""
+        if self._vector_store is None:
+            self._vector_store = get_vector_store(
+                self.settings, dimension=self.embedding_provider.dimension
+            )
+        return self._vector_store
+
+    @property
+    def rag_engine(self) -> RagEngine:
+        """Return the RAG engine singleton (shares the in-memory vector index).
+
+        The RAG package (and its heavy libraries) is imported lazily so non-RAG
+        code paths never pay the import cost.
+        """
+        if self._rag_engine is None:
+            from app.infrastructure.rag.engine import RagRetrievalEngine
+
+            self._rag_engine = RagRetrievalEngine(
+                embedding_provider=self.embedding_provider,
+                vector_store=self.vector_store,
+                llm_provider=self.llm_provider,
+                document_repository=self.document_repository,
+                chunk_repository=self.document_chunk_repository,
+                settings=self.settings,
+            )
+        return self._rag_engine
 
     # ------------------------------------------------------------------ #
     # Health

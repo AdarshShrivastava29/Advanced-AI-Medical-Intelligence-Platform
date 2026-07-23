@@ -11,6 +11,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
+from app.domain.entities.chat import ChatMessage
+from app.domain.entities.document import Document
+from app.domain.entities.document_chunk import DocumentChunk
 from app.domain.entities.prediction import Prediction
 from app.domain.entities.refresh_token import RefreshToken
 from app.domain.entities.report import Report
@@ -97,3 +100,59 @@ class ReportRepository(Repository[Report], ABC):
     @abstractmethod
     async def get_by_prediction_id(self, prediction_id: str) -> Report | None:
         """Return the report attached to a prediction, or None."""
+
+
+class DocumentRepository(Repository[Document], ABC):
+    """Persistence port for knowledge-base :class:`Document` aggregates."""
+
+    @abstractmethod
+    async def get_by_hash(self, content_hash: str) -> Document | None:
+        """Return a document with a matching content hash (duplicate detection)."""
+
+    @abstractmethod
+    async def latest_version(self, filename: str) -> int:
+        """Return the highest existing version for ``filename`` (0 if none)."""
+
+    @abstractmethod
+    async def list_all(self, *, skip: int = 0, limit: int = 50) -> list[Document]:
+        """Return a page of documents, newest first."""
+
+    @abstractmethod
+    async def count(self) -> int:
+        """Return the total number of documents."""
+
+
+class DocumentChunkRepository(Repository[DocumentChunk], ABC):
+    """Persistence port for :class:`DocumentChunk` records (``embeddings_metadata``)."""
+
+    @abstractmethod
+    async def add_many(self, chunks: list[DocumentChunk]) -> None:
+        """Bulk-insert chunks."""
+
+    @abstractmethod
+    async def list_all(self) -> list[DocumentChunk]:
+        """Return every chunk (used to build the keyword/BM25 index)."""
+
+    @abstractmethod
+    async def get_by_vector_ids(self, vector_ids: list[str]) -> dict[str, DocumentChunk]:
+        """Return chunks keyed by ``vector_id`` for the given ids."""
+
+    @abstractmethod
+    async def delete_by_document(self, document_id: str) -> int:
+        """Delete all chunks for a document; return the number removed."""
+
+
+class ChatMessageRepository(Repository[ChatMessage], ABC):
+    """Persistence port for :class:`ChatMessage` records (``chat_history``)."""
+
+    @abstractmethod
+    async def add(self, message: ChatMessage) -> ChatMessage:
+        """Persist a chat message."""
+
+    @abstractmethod
+    async def list_for_user(self, user_id: str, *, limit: int = 100) -> list[ChatMessage]:
+        """Return a user's messages in chronological order."""
+
+    @abstractmethod
+    async def delete_for_user(self, user_id: str) -> int:
+        """Delete all of a user's chat messages; return the number removed."""

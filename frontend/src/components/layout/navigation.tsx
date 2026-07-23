@@ -1,4 +1,13 @@
-import { BarChart3, History, LayoutDashboard, ScanLine, Settings, User } from 'lucide-react';
+import {
+  BarChart3,
+  BookOpen,
+  History,
+  LayoutDashboard,
+  MessagesSquare,
+  ScanLine,
+  Settings,
+  User,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 
 export interface NavItem {
@@ -12,6 +21,8 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
   { to: '/predict', label: 'New Prediction', icon: <ScanLine size={18} /> },
   { to: '/history', label: 'History', icon: <History size={18} /> },
+  { to: '/assistant', label: 'Knowledge Assistant', icon: <MessagesSquare size={18} /> },
+  { to: '/documents', label: 'Documents', icon: <BookOpen size={18} /> },
   { to: '/analytics', label: 'Analytics', icon: <BarChart3 size={18} /> },
   { to: '/settings', label: 'Settings', icon: <Settings size={18} /> },
   { to: '/profile', label: 'Profile', icon: <User size={18} /> },

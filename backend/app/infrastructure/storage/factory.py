@@ -13,6 +13,7 @@ from app.infrastructure.storage.local_storage import LocalFileStorage
 
 UPLOAD_CATEGORY = "uploads"
 GRADCAM_CATEGORY = "gradcam"
+DOCUMENTS_CATEGORY = "documents"
 
 
 def get_file_storage(settings: Settings) -> FileStorage:
@@ -21,5 +22,6 @@ def get_file_storage(settings: Settings) -> FileStorage:
         {
             UPLOAD_CATEGORY: settings.upload_path,
             GRADCAM_CATEGORY: settings.gradcam_path,
+            DOCUMENTS_CATEGORY: settings.pdf_path,
         }
     )
