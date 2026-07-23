@@ -9,6 +9,7 @@ the Dependency Inversion Principle (see ``docs/05_Low_Level_Architecture.md``).
 
 from __future__ import annotations
 
+from app.application.services.analytics_service import AnalyticsService
 from app.application.services.auth_service import AuthService
 from app.application.services.prediction_service import PredictionService
 from app.application.services.report_service import ReportService
@@ -16,6 +17,7 @@ from app.application.services.user_service import UserService
 from app.core.config import Settings
 from app.core.exceptions import DependencyUnavailableError
 from app.core.logging import get_logger
+from app.domain.ports.analytics import AnalyticsRepository
 from app.domain.ports.cache_provider import CacheProvider
 from app.domain.ports.file_storage import FileStorage
 from app.domain.ports.inference import InferenceEngine
@@ -27,6 +29,7 @@ from app.domain.ports.repositories import (
     UserRepository,
 )
 from app.domain.ports.task_queue import TaskQueue
+from app.infrastructure.db.analytics_repository import MongoAnalyticsRepository
 from app.infrastructure.db.client import MongoDatabase
 from app.infrastructure.db.prediction_repository import MongoPredictionRepository
 from app.infrastructure.db.refresh_token_repository import MongoRefreshTokenRepository
@@ -109,6 +112,11 @@ class Container:
         """Build a :class:`ReportRepository` bound to ``reports``."""
         return MongoReportRepository(self.database.database["reports"])
 
+    @property
+    def analytics_repository(self) -> AnalyticsRepository:
+        """Build an :class:`AnalyticsRepository` over the ``predictions`` collection."""
+        return MongoAnalyticsRepository(self.database.database["predictions"])
+
     # ------------------------------------------------------------------ #
     # Services (Service layer)
     # ------------------------------------------------------------------ #
@@ -141,6 +149,14 @@ class Container:
             report_repository=self.report_repository,
             report_service=self.report_service,
             settings=self.settings,
+        )
+
+    @property
+    def analytics_service(self) -> AnalyticsService:
+        """Build an :class:`AnalyticsService`."""
+        return AnalyticsService(
+            analytics_repository=self.analytics_repository,
+            prediction_repository=self.prediction_repository,
         )
 
     # ------------------------------------------------------------------ #

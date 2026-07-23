@@ -14,6 +14,7 @@ from typing import Annotated, Any
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from app.application.services.analytics_service import AnalyticsService
 from app.application.services.auth_service import AuthService
 from app.application.services.prediction_service import PredictionService
 from app.application.services.user_service import UserService
@@ -50,6 +51,13 @@ def get_prediction_service(
 ) -> PredictionService:
     """Provide a wired :class:`PredictionService`."""
     return container.prediction_service
+
+
+def get_analytics_service(
+    container: Annotated[Container, Depends(get_container)],
+) -> AnalyticsService:
+    """Provide a wired :class:`AnalyticsService`."""
+    return container.analytics_service
 
 
 async def get_current_user(

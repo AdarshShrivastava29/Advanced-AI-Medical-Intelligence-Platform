@@ -14,6 +14,7 @@ import pytest_asyncio
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
+from app.application.services.analytics_service import AnalyticsService
 from app.application.services.auth_service import AuthService
 from app.application.services.prediction_service import PredictionService
 from app.application.services.report_service import ReportService
@@ -24,12 +25,14 @@ from app.infrastructure.ml.inference_engine import TorchInferenceEngine
 from app.infrastructure.providers.llm.mock_provider import MockLLMProvider
 from app.infrastructure.storage.local_storage import LocalFileStorage
 from app.interface.dependencies import (
+    get_analytics_service,
     get_auth_service,
     get_prediction_service,
     get_user_service,
 )
 from app.main import create_app
 from tests.fakes import (
+    InMemoryAnalyticsRepository,
     InMemoryPredictionRepository,
     InMemoryRefreshTokenRepository,
     InMemoryReportRepository,
@@ -127,6 +130,17 @@ def prediction_service(
     )
 
 
+@pytest.fixture
+def analytics_service(
+    prediction_repo: InMemoryPredictionRepository,
+) -> AnalyticsService:
+    """An :class:`AnalyticsService` sharing the prediction repo used by ``/predict``."""
+    return AnalyticsService(
+        analytics_repository=InMemoryAnalyticsRepository(prediction_repo),
+        prediction_repository=prediction_repo,
+    )
+
+
 class _StubContainer:
     """Minimal stand-in for the composition root used by the readiness probe."""
 
@@ -150,6 +164,7 @@ async def client(
     auth_service: AuthService,
     user_service: UserService,
     prediction_service: PredictionService,
+    analytics_service: AnalyticsService,
 ) -> AsyncIterator[AsyncClient]:
     """Yield an ASGI client with a stubbed container and fake-backed services."""
     app = create_app(test_settings)
@@ -157,6 +172,7 @@ async def client(
     app.dependency_overrides[get_auth_service] = lambda: auth_service
     app.dependency_overrides[get_user_service] = lambda: user_service
     app.dependency_overrides[get_prediction_service] = lambda: prediction_service
+    app.dependency_overrides[get_analytics_service] = lambda: analytics_service
 
     async with LifespanManager(app):
         transport = ASGITransport(app=app)

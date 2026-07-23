@@ -1,6 +1,7 @@
 // Shared API response types mirroring the backend schemas (docs/18_API_Design.md).
 
 export type Role = 'user' | 'doctor' | 'admin';
+export type RiskLevel = 'low' | 'moderate' | 'high';
 
 export interface TokenResponse {
   access_token: string;
@@ -33,4 +34,77 @@ export interface ProblemDetail {
   instance?: string;
   errors?: unknown[];
   request_id?: string;
+}
+
+export interface GradCamUrls {
+  original: string;
+  heatmap: string;
+  overlay: string;
+}
+
+export interface ReportResponse {
+  id: string;
+  prediction_id: string;
+  llm_provider: string;
+  llm_model: string;
+  risk_level: RiskLevel;
+  content_markdown: string;
+  created_at: string;
+}
+
+export interface PredictionResponse {
+  id: string;
+  predicted_class: string;
+  confidence: number;
+  probabilities: Record<string, number>;
+  ood_flag: boolean;
+  model_arch: string;
+  model_version: string;
+  image_url: string | null;
+  gradcam: GradCamUrls;
+  status: string;
+  created_at: string;
+  report: ReportResponse | null;
+}
+
+export interface PredictionListItem {
+  id: string;
+  predicted_class: string;
+  confidence: number;
+  model_arch: string;
+  ood_flag: boolean;
+  created_at: string;
+}
+
+export interface Page<T> {
+  items: T[];
+  page: number;
+  size: number;
+  total: number;
+  pages: number;
+}
+
+export interface AnalyticsOverview {
+  total_predictions: number;
+  pneumonia_count: number;
+  normal_count: number;
+  ood_count: number;
+  average_confidence: number;
+}
+
+export interface TrendPoint {
+  date: string;
+  count: number;
+}
+
+export interface DistributionBucket {
+  label: string;
+  count: number;
+}
+
+export interface AnalyticsSummary {
+  overview: AnalyticsOverview;
+  trends: TrendPoint[];
+  disease_distribution: DistributionBucket[];
+  confidence_distribution: DistributionBucket[];
 }

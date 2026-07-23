@@ -7,15 +7,24 @@ be tested without a database — demonstrating the value of the Repository patte
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+from typing import ClassVar
+
 from app.domain.entities.prediction import Prediction
 from app.domain.entities.refresh_token import RefreshToken
 from app.domain.entities.report import Report
 from app.domain.entities.user import User
+from app.domain.ports.analytics import AnalyticsRepository
 from app.domain.ports.repositories import (
     PredictionRepository,
     RefreshTokenRepository,
     ReportRepository,
     UserRepository,
+)
+from app.domain.value_objects.analytics import (
+    AnalyticsOverview,
+    DistributionBucket,
+    TrendPoint,
 )
 
 
@@ -174,3 +183,72 @@ class InMemoryReportRepository(ReportRepository):
         matches = [r for r in self._items.values() if r.prediction_id == prediction_id]
         matches.sort(key=lambda r: r.created_at, reverse=True)
         return matches[0] if matches else None
+
+
+class InMemoryAnalyticsRepository(AnalyticsRepository):
+    """Computes analytics in Python from an in-memory prediction repository."""
+
+    _BOUNDARIES: ClassVar[list[float]] = [0.0, 0.5, 0.7, 0.85, 1.01]
+    _LABELS: ClassVar[list[str]] = ["0-50%", "50-70%", "70-85%", "85-100%"]
+
+    def __init__(self, predictions: InMemoryPredictionRepository) -> None:
+        self._predictions = predictions
+
+    async def _user_predictions(self, user_id: str) -> list[Prediction]:
+        return await self._predictions.list_for_user(user_id, skip=0, limit=100_000)
+
+    async def overview(self, user_id: str) -> AnalyticsOverview:
+        preds = await self._user_predictions(user_id)
+        if not preds:
+            return AnalyticsOverview()
+        pneumonia = sum(1 for p in preds if p.predicted_class == "PNEUMONIA")
+        normal = sum(1 for p in preds if p.predicted_class == "NORMAL")
+        ood = sum(1 for p in preds if p.ood_flag)
+        avg = sum(p.confidence for p in preds) / len(preds)
+        return AnalyticsOverview(
+            total_predictions=len(preds),
+            pneumonia_count=pneumonia,
+            normal_count=normal,
+            ood_count=ood,
+            average_confidence=round(avg, 4),
+        )
+
+    async def trends(self, user_id: str, *, days: int = 30) -> list[TrendPoint]:
+        preds = await self._user_predictions(user_id)
+        counts: dict[str, int] = {}
+        for p in preds:
+            key = p.created_at.date().isoformat()
+            counts[key] = counts.get(key, 0) + 1
+        start = (datetime.now(UTC) - timedelta(days=days - 1)).date()
+        return [
+            TrendPoint(
+                date=(day := (start + timedelta(days=offset)).isoformat()),
+                count=counts.get(day, 0),
+            )
+            for offset in range(days)
+        ]
+
+    async def disease_distribution(self, user_id: str) -> list[DistributionBucket]:
+        preds = await self._user_predictions(user_id)
+        return [
+            DistributionBucket(
+                label="NORMAL", count=sum(1 for p in preds if p.predicted_class == "NORMAL")
+            ),
+            DistributionBucket(
+                label="PNEUMONIA",
+                count=sum(1 for p in preds if p.predicted_class == "PNEUMONIA"),
+            ),
+        ]
+
+    async def confidence_distribution(self, user_id: str) -> list[DistributionBucket]:
+        preds = await self._user_predictions(user_id)
+        buckets = [0] * len(self._LABELS)
+        for p in preds:
+            for i in range(len(self._LABELS)):
+                if self._BOUNDARIES[i] <= p.confidence < self._BOUNDARIES[i + 1]:
+                    buckets[i] += 1
+                    break
+        return [
+            DistributionBucket(label=label, count=buckets[i])
+            for i, label in enumerate(self._LABELS)
+        ]
