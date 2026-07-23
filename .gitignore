@@ -1,0 +1,117 @@
+# ===========================================================================
+#  AIMIP — Advanced AI Medical Intelligence Platform : .gitignore
+# ===========================================================================
+
+# ---- Secrets & environment -------------------------------------------------
+.env
+.env.*
+!.env.example
+*.env
+!*.env.example
+secrets/
+*.pem
+*.key
+*.crt
+*.p12
+
+# ---- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing / coverage / caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+nosetests.xml
+*.cover
+
+# ---- Node / Frontend -------------------------------------------------------
+node_modules/
+.pnp
+.pnp.js
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+
+# ---- ML / data artifacts (never commit large binaries or PHI) --------------
+data/
+!data/.gitkeep
+*.pt
+*.pth
+*.onnx
+*.h5
+*.ckpt
+*.safetensors
+uploads/
+gradcam/
+vector_index/
+*.faiss
+*.index
+chroma/
+pdfs/
+weights/
+
+# ---- Logs ------------------------------------------------------------------
+logs/
+*.log
+
+# ---- IDE / OS --------------------------------------------------------------
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Docker / build --------------------------------------------------------
+*.pid
+docker-compose.override.yml
+
+# ---- Misc ------------------------------------------------------------------
+*.bak
+*.tmp
+tmp/
+scratch/
