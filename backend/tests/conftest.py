@@ -15,11 +15,26 @@ from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
 from app.application.services.auth_service import AuthService
+from app.application.services.prediction_service import PredictionService
+from app.application.services.report_service import ReportService
 from app.application.services.user_service import UserService
 from app.core.config import Settings
-from app.interface.dependencies import get_auth_service, get_user_service
+from app.infrastructure.ml.classifier.densenet import DenseNet121Classifier
+from app.infrastructure.ml.inference_engine import TorchInferenceEngine
+from app.infrastructure.providers.llm.mock_provider import MockLLMProvider
+from app.infrastructure.storage.local_storage import LocalFileStorage
+from app.interface.dependencies import (
+    get_auth_service,
+    get_prediction_service,
+    get_user_service,
+)
 from app.main import create_app
-from tests.fakes import InMemoryRefreshTokenRepository, InMemoryUserRepository
+from tests.fakes import (
+    InMemoryPredictionRepository,
+    InMemoryRefreshTokenRepository,
+    InMemoryReportRepository,
+    InMemoryUserRepository,
+)
 
 
 @pytest.fixture
@@ -70,6 +85,48 @@ def user_service(user_repo: InMemoryUserRepository) -> UserService:
     return UserService(user_repo)
 
 
+@pytest.fixture
+def prediction_repo() -> InMemoryPredictionRepository:
+    """A fresh in-memory prediction repository."""
+    return InMemoryPredictionRepository()
+
+
+@pytest.fixture
+def report_repo() -> InMemoryReportRepository:
+    """A fresh in-memory report repository."""
+    return InMemoryReportRepository()
+
+
+@pytest.fixture
+def prediction_service(
+    prediction_repo: InMemoryPredictionRepository,
+    report_repo: InMemoryReportRepository,
+    test_settings: Settings,
+    tmp_path_factory: pytest.TempPathFactory,
+) -> PredictionService:
+    """A real :class:`PredictionService`: random-init DenseNet engine (no download),
+    local file storage in a temp dir, mock LLM for reports, in-memory repos."""
+    storage_root = tmp_path_factory.mktemp("media")
+    file_storage = LocalFileStorage(
+        {
+            "uploads": str(storage_root / "uploads"),
+            "gradcam": str(storage_root / "gradcam"),
+        }
+    )
+    engine = TorchInferenceEngine(
+        DenseNet121Classifier(), test_settings, pretrained=False
+    )
+    report_service = ReportService(MockLLMProvider(), test_settings)
+    return PredictionService(
+        inference_engine=engine,
+        file_storage=file_storage,
+        prediction_repository=prediction_repo,
+        report_repository=report_repo,
+        report_service=report_service,
+        settings=test_settings,
+    )
+
+
 class _StubContainer:
     """Minimal stand-in for the composition root used by the readiness probe."""
 
@@ -92,12 +149,14 @@ async def client(
     test_settings: Settings,
     auth_service: AuthService,
     user_service: UserService,
+    prediction_service: PredictionService,
 ) -> AsyncIterator[AsyncClient]:
     """Yield an ASGI client with a stubbed container and fake-backed services."""
     app = create_app(test_settings)
     app.state.container = _StubContainer(test_settings)
     app.dependency_overrides[get_auth_service] = lambda: auth_service
     app.dependency_overrides[get_user_service] = lambda: user_service
+    app.dependency_overrides[get_prediction_service] = lambda: prediction_service
 
     async with LifespanManager(app):
         transport = ASGITransport(app=app)

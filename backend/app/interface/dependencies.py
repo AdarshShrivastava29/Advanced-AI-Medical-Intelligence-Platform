@@ -15,6 +15,7 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.application.services.auth_service import AuthService
+from app.application.services.prediction_service import PredictionService
 from app.application.services.user_service import UserService
 from app.core.container import Container
 from app.core.exceptions import AuthenticationError, AuthorizationError
@@ -42,6 +43,13 @@ def get_user_service(
 ) -> UserService:
     """Provide a wired :class:`UserService`."""
     return container.user_service
+
+
+def get_prediction_service(
+    container: Annotated[Container, Depends(get_container)],
+) -> PredictionService:
+    """Provide a wired :class:`PredictionService`."""
+    return container.prediction_service
 
 
 async def get_current_user(

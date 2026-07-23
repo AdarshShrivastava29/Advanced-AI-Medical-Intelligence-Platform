@@ -11,7 +11,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
+from app.domain.entities.prediction import Prediction
 from app.domain.entities.refresh_token import RefreshToken
+from app.domain.entities.report import Report
 from app.domain.entities.user import User
 
 T = TypeVar("T")
@@ -67,3 +69,31 @@ class RefreshTokenRepository(Repository[RefreshToken], ABC):
     @abstractmethod
     async def revoke_all_for_user(self, user_id: str) -> int:
         """Revoke every active token for a user; return the number revoked."""
+
+
+class PredictionRepository(Repository[Prediction], ABC):
+    """Persistence port for :class:`Prediction` aggregates."""
+
+    @abstractmethod
+    async def list_for_user(
+        self, user_id: str, *, skip: int = 0, limit: int = 20
+    ) -> list[Prediction]:
+        """Return a page of a user's predictions, newest first."""
+
+    @abstractmethod
+    async def count_for_user(self, user_id: str) -> int:
+        """Return the total number of predictions for a user."""
+
+    @abstractmethod
+    async def get_by_idempotency_key(
+        self, user_id: str, idempotency_key: str
+    ) -> Prediction | None:
+        """Return a user's prediction previously stored under ``idempotency_key``."""
+
+
+class ReportRepository(Repository[Report], ABC):
+    """Persistence port for :class:`Report` aggregates."""
+
+    @abstractmethod
+    async def get_by_prediction_id(self, prediction_id: str) -> Report | None:
+        """Return the report attached to a prediction, or None."""

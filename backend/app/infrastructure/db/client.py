@@ -84,4 +84,12 @@ class MongoDatabase:
         await db["refresh_tokens"].create_index("user_id")
         # TTL index: expired refresh tokens are purged automatically.
         await db["refresh_tokens"].create_index("expires_at", expireAfterSeconds=0)
+        # Prediction history queries + idempotency lookups.
+        await db["predictions"].create_index([("user_id", 1), ("created_at", -1)])
+        await db["predictions"].create_index(
+            [("user_id", 1), ("idempotency_key", 1)],
+            unique=True,
+            partialFilterExpression={"idempotency_key": {"$type": "string"}},
+        )
+        await db["reports"].create_index("prediction_id")
         logger.info("db.indexes.ensured")

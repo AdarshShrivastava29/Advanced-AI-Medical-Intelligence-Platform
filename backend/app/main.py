@@ -10,9 +10,11 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app import __version__
 from app.core.config import Settings, get_settings
@@ -93,6 +95,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Routers: health outside the versioned prefix, everything else under it.
     app.include_router(health_router)
     app.include_router(api_v1_router, prefix=settings.api_v1_prefix)
+
+    # Serve stored images (uploads + Grad-CAM) at /media/<category>/<file>.
+    # Directories are ensured by the file-storage adapter at container build time.
+    Path(settings.upload_path).mkdir(parents=True, exist_ok=True)
+    Path(settings.gradcam_path).mkdir(parents=True, exist_ok=True)
+    app.mount(
+        "/media/uploads",
+        StaticFiles(directory=settings.upload_path),
+        name="uploads",
+    )
+    app.mount(
+        "/media/gradcam",
+        StaticFiles(directory=settings.gradcam_path),
+        name="gradcam",
+    )
 
     @app.get("/", tags=["meta"], summary="API metadata")
     async def root() -> dict[str, str]:
