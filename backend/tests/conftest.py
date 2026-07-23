@@ -69,6 +69,9 @@ def test_settings() -> Settings:
         refresh_token_expire_days=7,
         max_login_attempts=3,
         lockout_minutes=15,
+        # Isolate inference from any ambient trained model/registry on disk so tests
+        # are deterministic (they use the pretrained/random-init fallback).
+        model_path="./data/__pytest_no_model__/model.pt",
     )
 
 

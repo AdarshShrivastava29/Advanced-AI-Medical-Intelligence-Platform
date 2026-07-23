@@ -25,6 +25,8 @@ def _settings() -> Settings:
         llm_provider="mock",
         embedding_provider="sentence_transformer",
         jwt_secret="x" * 40,
+        # Isolated path so no ambient registry/checkpoint is picked up.
+        model_path="./data/__pytest_no_model__/model.pt",
     )
 
 

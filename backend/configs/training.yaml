@@ -1,0 +1,32 @@
+# AIMIP training configuration (see docs/10_Model_Training.md).
+# Consumed by scripts/train.py; every field maps to TrainingConfig.
+
+# --- Data ---
+data_dir: ./data/datasets/chest_xray   # Kaggle: train|val|test / NORMAL|PNEUMONIA
+dataset_name: chest_xray_pneumonia
+image_size: 224
+val_split: 0.15
+test_split: 0.15
+resplit: true                          # merge provided splits and re-split deterministically
+class_names: [NORMAL, PNEUMONIA]
+
+# --- Model (selected through the same MODEL_ARCH registry as inference) ---
+arch: densenet121                      # densenet121 | efficientnet_b0
+pretrained: true
+
+# --- Optimisation ---
+epochs: 15
+batch_size: 32
+learning_rate: 0.0003
+weight_decay: 0.0001
+freeze_backbone_epochs: 2
+grad_clip_norm: 1.0
+scheduler: cosine                      # cosine | plateau | none
+early_stopping_patience: 4
+mixed_precision: true                  # used only when CUDA is available
+num_workers: 0
+seed: 42
+
+# --- Output ---
+output_dir: ./data/training
+model_path: ./data/weights/model.pt    # best weights also copied here (MODEL_PATH)

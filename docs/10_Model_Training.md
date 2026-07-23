@@ -1,373 +1,170 @@
 # 10 — Model Training
 
-> **AIMIP** chest X-ray pneumonia classifier — training pipeline.
+> Overview. This document describes the **implemented** training pipeline that
+> fine-tunes the `MODEL_ARCH`-selected classifier (DenseNet-121 or
+> EfficientNet-B0) for chest X-ray pneumonia detection, evaluates it, writes
+> artifacts, and registers the resulting checkpoint so the inference engine
+> **auto-loads** it with no code change. It cross-links
+> [AI Architecture](09_AI_Architecture.md), [Model Inference](11_Model_Inference.md)
+> and [AI Providers](16_AI_Providers.md).
 >
-> **Disclaimer:** AIMIP is clinical **decision-support**, **not a medical device**; outputs are
-> informational, not a diagnosis, and must be reviewed by a licensed clinician. Not FDA/CE cleared.
->
-> **Training is optional.** The application ships with a **pretrained-inference fallback**: if no
-> weights exist at `MODEL_PATH`, inference uses the ImageNet-pretrained backbone with a fresh 2-class
-> head, so the app runs without the dataset or a training run. See
-> [Model Inference](11_Model_Inference.md).
-
-**Related docs:** [AI Architecture](09_AI_Architecture.md) · [Model Inference](11_Model_Inference.md) ·
-[Grad-CAM](12_GradCAM.md) · [Database Design](17_Database_Design.md) ·
-[Environment Configuration](31_Environment_Configuration.md)
-
----
+> _Clinical decision-support only — not a medical device._
 
 ## 1. Dataset
 
-**Source:** Kaggle "Chest X-Ray Images (Pneumonia)" (Kermany et al.). Frontal chest radiographs
-labeled `NORMAL` or `PNEUMONIA` (bacterial and viral cases collapsed into a single `PNEUMONIA`
-class), pre-split into `train` / `val` / `test`. See the dataset datasheet summary in
-[AI Architecture §6.2](09_AI_Architecture.md).
+**Primary dataset:** Kaggle "Chest X-Ray Images (Pneumonia)" (Kermany et al.,
+`paultimothymooney/chest-xray-pneumonia`), ~5,856 frontal chest radiographs in
+two classes: `NORMAL` and `PNEUMONIA`.
 
-The class index order is **contractual** across training, inference and Grad-CAM:
-
-```
-0 → NORMAL
-1 → PNEUMONIA
-```
-
-### 1.1 Directory layout
-
-The archive is extracted under `PDF_PATH`'s sibling `data/` tree; the trainer reads a dataset root
-via `--data-dir` (default `./data/chest_xray`):
+**Expected layout** (Kaggle `ImageFolder` structure):
 
 ```
-data/chest_xray/
-├── train/
-│   ├── NORMAL/       *.jpeg
-│   └── PNEUMONIA/    *.jpeg
-├── val/
-│   ├── NORMAL/
-│   └── PNEUMONIA/
-└── test/
-    ├── NORMAL/
-    └── PNEUMONIA/
+data/datasets/chest_xray/
+├── train/{NORMAL,PNEUMONIA}/*.jpeg
+├── val/{NORMAL,PNEUMONIA}/*.jpeg
+└── test/{NORMAL,PNEUMONIA}/*.jpeg
 ```
 
-This is exactly the `torchvision.datasets.ImageFolder` convention, so folder names map directly to
-class indices (alphabetical → `NORMAL=0`, `PNEUMONIA=1`, matching the contract above).
+**Acquisition:**
+- `python scripts/train.py --download` — best-effort download via `kagglehub`
+  (requires Kaggle credentials), or
+- download the archive manually and unzip into `data/datasets/chest_xray/`.
 
----
+**Loading & validation** (`app/infrastructure/ml/training/dataset.py`): the loader
+discovers either the split layout or a flat `NORMAL`/`PNEUMONIA` layout, validates
+that both classes exist and are non-empty (raising a clear `ValidationError`
+otherwise), and — because the Kaggle `val` split is tiny (16 images) — by default
+merges all provided splits and performs a **deterministic, stratified re-split**
+(`resplit: true`) into train/val/test using `val_split`/`test_split`.
 
-## 2. Preprocessing & transforms
+**Statistics & imbalance:** per-split and per-class counts are computed and logged;
+inverse-frequency **class weights** are derived from the training split and passed
+to the loss to counter the dataset's pneumonia skew (~3:1).
 
-Input spec is fixed by the `Classifier` port and the canon: **RGB `224×224`, ImageNet mean/std**.
-Chest X-rays are single-channel; they are expanded to 3 channels so the ImageNet-pretrained backbone
-applies unchanged.
+**Verification dataset:** to prove the pipeline without the ~1 GB download / GPU,
+`generate_synthetic_dataset` creates a small, learnable two-class set (smooth
+gradients for `NORMAL`, bright opacity blobs for `PNEUMONIA`). This is used by the
+tests and the `--synthetic` flag; it verifies the pipeline, it does **not** replace
+the real dataset.
 
-```python
-# backend/app/infrastructure/ml/training/transforms.py
-from torchvision import transforms
+## 2. Training process
 
-IMAGENET_MEAN = [0.485, 0.456, 0.406]
-IMAGENET_STD  = [0.229, 0.224, 0.225]
-IMG_SIZE = 224
+Pipeline stages (`training/pipeline.py`):
 
-train_transform = transforms.Compose([
-    transforms.Grayscale(num_output_channels=3),      # X-ray → 3-channel
-    transforms.Resize((IMG_SIZE, IMG_SIZE)),
-    transforms.RandomHorizontalFlip(p=0.5),
-    transforms.RandomRotation(degrees=10),
-    transforms.ColorJitter(brightness=0.10, contrast=0.10),
-    transforms.RandomAffine(degrees=0, translate=(0.05, 0.05)),
-    transforms.ToTensor(),
-    transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
-])
+1. **Select architecture** through the shared `MODEL_ARCH` registry — the same
+   registry the inference engine uses.
+2. **Build dataloaders** with augmentation (train) and deterministic transforms
+   (val/test) that mirror inference preprocessing (224², ImageNet normalisation).
+3. **Transfer learning** (`training/trainer.py`): load the ImageNet-pretrained
+   backbone, replace the head with a 2-class linear layer, **freeze the backbone**
+   for the first `freeze_backbone_epochs` (train the head only), then **unfreeze**
+   and fine-tune end-to-end.
+4. **Optimise** with AdamW + weighted cross-entropy, a cosine (or plateau) LR
+   scheduler, **gradient clipping**, and **mixed precision** when CUDA is available.
+5. **Validate each epoch**, track the best model by validation loss, apply
+   **early stopping** (`early_stopping_patience`), and checkpoint `last.ckpt`,
+   `best.ckpt` (resumable bundles) plus `model.pt` (serving state-dict).
+6. **Evaluate** on the held-out test split.
+7. **Write artifacts** and **register** the model.
 
-# val/test: deterministic, NO augmentation — identical to the inference transform
-eval_transform = transforms.Compose([
-    transforms.Grayscale(num_output_channels=3),
-    transforms.Resize((IMG_SIZE, IMG_SIZE)),
-    transforms.ToTensor(),
-    transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
-])
-```
+**Reproducibility:** Python/NumPy/torch seeds and cuDNN determinism are set from
+`config.seed`. **Resume:** `Trainer.fit(..., resume_from=<ckpt>)` restores model,
+optimizer, scheduler and epoch.
 
-**Augmentation rationale:** flips/small rotations/translation and mild brightness-contrast jitter
-model realistic positioning and exposure variation without introducing anatomically implausible
-transforms (no vertical flip — a chest X-ray has a fixed superior/inferior orientation). The
-**`eval_transform` is byte-for-byte the transform used at inference time** so there is no train/serve
-skew; [Model Inference](11_Model_Inference.md) imports the same function.
+## 3. Hyperparameters
 
----
+Configured via `configs/training.yaml` (overridable by CLI flags). Defaults:
 
-## 3. Transfer-learning strategy
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `arch` | `densenet121` | or `efficientnet_b0` |
+| `pretrained` | `true` | ImageNet transfer learning |
+| `image_size` | `224` | matches inference |
+| `epochs` | `15` | early-stopping usually ends sooner |
+| `batch_size` | `32` | |
+| `learning_rate` | `3e-4` | AdamW |
+| `weight_decay` | `1e-4` | |
+| `freeze_backbone_epochs` | `2` | head-only warmup |
+| `grad_clip_norm` | `1.0` | |
+| `scheduler` | `cosine` | `cosine` \| `plateau` \| `none` |
+| `early_stopping_patience` | `4` | on val loss |
+| `mixed_precision` | `true` | honoured only on CUDA |
+| `val_split` / `test_split` | `0.15` / `0.15` | stratified |
+| `seed` | `42` | reproducible |
 
-Three-phase transfer learning on the ImageNet-pretrained backbone selected by `MODEL_ARCH`
-(`densenet121` default, or `efficientnet_b0`), built through the `Classifier` port and
-`ClassifierFactory` (see [AI Architecture §3–4](09_AI_Architecture.md)):
+## 4. Evaluation
 
-1. **Freeze backbone → train head.** Freeze all pretrained parameters; train only the fresh 2-class
-   head. Fast, stabilizes the randomly-initialized head against the strong pretrained features.
-2. **Fine-tune head (+ upper blocks).** Keep training the head; optionally unfreeze the last
-   convolutional block at a low LR to adapt high-level features to radiographs.
-3. **Optional full unfreeze.** Unfreeze the whole network at a very small LR (discriminative LR: head
-   > body) for a few epochs to squeeze out remaining accuracy. Guarded by `--unfreeze-all` and used
-   only when the val metrics plateau in phase 2.
+`training/evaluation.py` (scikit-learn) computes on the test split: **accuracy**,
+**precision**, **recall**, **F1** (pneumonia + macro), **ROC-AUC**, the
+**confusion matrix**, a full **classification report**, and **per-class** metrics.
 
-```python
-def set_trainable(model, arch: str, phase: str) -> None:
-    for p in model.parameters():
-        p.requires_grad = False
-    # head is always trainable
-    head = model.classifier if arch == "densenet121" else model.classifier[1]
-    for p in head.parameters():
-        p.requires_grad = True
-    if phase in ("finetune", "unfreeze_all"):
-        last_block = (model.features.denseblock4 if arch == "densenet121"
-                      else model.features[-1])
-        for p in last_block.parameters():
-            p.requires_grad = True
-    if phase == "unfreeze_all":
-        for p in model.parameters():
-            p.requires_grad = True
-```
+**Artifacts** written to `data/training/<arch>_v<version>_<timestamp>/`:
+`loss_curve.png`, `accuracy_curve.png`, `confusion_matrix.png`, `metrics.json`,
+`best.ckpt`, `last.ckpt`, `model.pt`, and a human-readable `training_summary.md`.
 
----
+## 5. Model registry & automatic loading
 
-## 4. Optimizer, loss, scheduler, early stopping
+Each run appends an entry to `data/weights/registry.json`
+(`app/infrastructure/ml/model_registry.py`) recording: **version**,
+**architecture**, **dataset**, **training date**, **metrics**, checkpoint
+**SHA-256**, **checkpoint path**, full **config**, class names and an **approved**
+flag. The best weights are also copied to `MODEL_PATH`.
 
-| Concern | Choice | Notes |
-|---------|--------|-------|
-| **Optimizer** | `AdamW` | decoupled weight decay; `lr=1e-3` (head phase), `lr=1e-4`/`1e-5` (fine-tune / unfreeze), `weight_decay=1e-4` |
-| **Loss** | Weighted cross-entropy | class weights inversely proportional to class frequency, to correct the `NORMAL`/`PNEUMONIA` imbalance |
-| **Scheduler** | `CosineAnnealingLR` (or `ReduceLROnPlateau` on val F1) | smooth LR decay per phase |
-| **Early stopping** | patience on val F1 | restores best checkpoint; halts when val F1 stops improving for `--patience` epochs |
-| **AMP** | `torch.cuda.amp` autocast + `GradScaler` | mixed precision when CUDA is available |
+At load time the inference engine resolves, in order: (1) the newest **approved**
+registry entry for the active `MODEL_ARCH`, (2) a raw checkpoint at `MODEL_PATH`,
+(3) the pretrained backbone fallback. Training a new model therefore upgrades
+serving **without a code change** — see [Model Inference](11_Model_Inference.md).
 
-```python
-# class weights from train-split counts (higher weight for the minority class)
-import torch
-counts = torch.tensor([n_normal, n_pneumonia], dtype=torch.float)
-class_weights = counts.sum() / (len(counts) * counts)     # inverse-frequency
-criterion = torch.nn.CrossEntropyLoss(weight=class_weights.to(device))
-optimizer = torch.optim.AdamW(
-    filter(lambda p: p.requires_grad, model.parameters()),
-    lr=1e-3, weight_decay=1e-4,
-)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
-```
+## 6. Results
 
----
+Verification run on the synthetic dataset (DenseNet-121, transfer learning, 6
+epochs, CPU) — demonstrating the pipeline learns and that inference improves:
 
-## 5. Metrics
+| Metric | Value |
+|--------|-------|
+| Test accuracy | 1.00 |
+| Precision / Recall / F1 (PNEUMONIA) | 1.00 / 1.00 / 1.00 |
+| ROC-AUC | 1.00 |
+| Registered version | `densenet121` v1 |
 
-Evaluated on `val` each epoch (for early stopping / checkpoint selection) and once on the held-out
-`test` split for the model card. `PNEUMONIA` (index 1) is the **positive** class.
+Inference auto-load impact (same synthetic image):
 
-- **Accuracy**, **Precision**, **Recall (sensitivity)**, **F1** — via `sklearn.metrics`.
-- **AUROC** — `roc_auc_score` on the softmax probability of the positive class.
-- **Confusion matrix** — 2×2 `[[TN, FP], [FN, TP]]`.
+| Model source | Predicted | Confidence |
+|--------------|-----------|-----------|
+| Pretrained/untrained fallback | PNEUMONIA | ~0.52 (≈ chance) |
+| **Registered trained v1** | PNEUMONIA | **~0.90** |
 
-In a clinical triage context **recall on `PNEUMONIA` is prioritized** (a false negative is the costly
-error), which is another reason the loss is class-weighted and the checkpoint is selected on F1
-rather than raw accuracy.
+> These numbers reflect a deliberately-separable synthetic set used to validate
+> the pipeline. Real Kaggle-dataset numbers depend on the run; the same commands
+> produce them once the dataset is placed under `data/datasets/chest_xray/`.
 
-```python
-from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    roc_auc_score, confusion_matrix,
-)
+## 7. Model comparison
 
-def evaluate(model, loader, device) -> dict:
-    model.eval()
-    y_true, y_pred, y_prob = [], [], []
-    with torch.no_grad():
-        for x, y in loader:
-            logits = model(x.to(device))
-            prob_pneu = torch.softmax(logits, dim=1)[:, 1]  # positive class
-            y_true += y.tolist()
-            y_pred += logits.argmax(1).cpu().tolist()
-            y_prob += prob_pneu.cpu().tolist()
-    return {
-        "accuracy":  accuracy_score(y_true, y_pred),
-        "precision": precision_score(y_true, y_pred, zero_division=0),
-        "recall":    recall_score(y_true, y_pred, zero_division=0),
-        "f1":        f1_score(y_true, y_pred, zero_division=0),
-        "auroc":     roc_auc_score(y_true, y_prob),
-        "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),
-    }
-```
-
----
-
-## 6. Checkpointing to `MODEL_PATH`
-
-The best checkpoint (highest val F1) is written to `MODEL_PATH` (`./data/weights/model.pt`) as a
-self-describing bundle, alongside a `model_card.json` and the `model_version` string (see
-[AI Architecture §5](09_AI_Architecture.md)).
-
-```python
-def save_checkpoint(model, arch, metrics, model_version, path):
-    torch.save(
-        {
-            "model_arch": arch,                 # densenet121 | efficientnet_b0
-            "model_version": model_version,     # e.g. densenet121-v1.2.0+a1b9f3c
-            "class_names": ["NORMAL", "PNEUMONIA"],
-            "input_spec": {"size": 224, "mean": IMAGENET_MEAN, "std": IMAGENET_STD},
-            "state_dict": model.state_dict(),
-            "metrics": metrics,                 # test-split metrics for the model card
-        },
-        path,                                   # MODEL_PATH
-    )
-```
-
-Inference loads this bundle at `MODEL_PATH`, verifies `model_arch` matches the running `MODEL_ARCH`,
-and records `model_version` on each `predictions` document. See
-[Model Inference](11_Model_Inference.md) and [Database Design](17_Database_Design.md).
-
----
-
-## 7. Reproducibility
-
-All entropy sources are seeded, and cuDNN is put in deterministic mode. The seed and the resolved
-config are logged so a run can be reproduced.
-
-```python
-import os, random, numpy as np, torch
-
-def seed_everything(seed: int = 42) -> None:
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-```
-
-The DataLoader is seeded via a `generator` and a `worker_init_fn`. The `model_version` embeds the
-training-code git SHA so weights are tied to exact code (see [AI Architecture §5.1](09_AI_Architecture.md)).
-
----
-
-## 8. Representative training loop (PyTorch pseudo-code)
-
-```python
-# backend/app/infrastructure/ml/training/trainer.py (representative)
-import torch
-from torch.utils.data import DataLoader
-from torchvision.datasets import ImageFolder
-from app.infrastructure.ml.classifier.factory import ClassifierFactory
-from .transforms import train_transform, eval_transform
-
-def train(data_dir, arch, model_path, epochs=15, batch_size=32,
-          patience=4, unfreeze_all=False, seed=42, device="cuda"):
-    seed_everything(seed)
-
-    train_ds = ImageFolder(f"{data_dir}/train", transform=train_transform)
-    val_ds   = ImageFolder(f"{data_dir}/val",   transform=eval_transform)
-    test_ds  = ImageFolder(f"{data_dir}/test",  transform=eval_transform)
-    train_dl = DataLoader(train_ds, batch_size, shuffle=True,  num_workers=4)
-    val_dl   = DataLoader(val_ds,   batch_size, shuffle=False, num_workers=4)
-    test_dl  = DataLoader(test_ds,  batch_size, shuffle=False, num_workers=4)
-
-    classifier = ClassifierFactory.create(arch, pretrained=True)   # MODEL_ARCH
-    model = classifier.build().to(device)
-
-    class_weights = compute_class_weights(train_ds).to(device)
-    criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
-    scaler = torch.cuda.amp.GradScaler(enabled=(device == "cuda"))
-
-    best_f1, epochs_no_improve, best_state = -1.0, 0, None
-    phases = [("head", 3), ("finetune", epochs - 3)]               # phase schedule
-
-    for phase, phase_epochs in phases:
-        set_trainable(model, arch, "unfreeze_all" if unfreeze_all else phase)
-        optimizer = torch.optim.AdamW(
-            filter(lambda p: p.requires_grad, model.parameters()),
-            lr=1e-3 if phase == "head" else 1e-4, weight_decay=1e-4)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=phase_epochs)
-
-        for epoch in range(phase_epochs):
-            model.train()
-            for x, y in train_dl:
-                x, y = x.to(device), y.to(device)
-                optimizer.zero_grad(set_to_none=True)
-                with torch.cuda.amp.autocast(enabled=(device == "cuda")):
-                    loss = criterion(model(x), y)
-                scaler.scale(loss).backward()
-                scaler.step(optimizer)
-                scaler.update()
-            scheduler.step()
-
-            val_metrics = evaluate(model, val_dl, device)
-            if val_metrics["f1"] > best_f1:
-                best_f1, best_state, epochs_no_improve = (
-                    val_metrics["f1"], {k: v.cpu() for k, v in model.state_dict().items()}, 0)
-            else:
-                epochs_no_improve += 1
-                if epochs_no_improve >= patience:
-                    break                                           # early stopping
-
-    model.load_state_dict(best_state)                              # restore best
-    test_metrics = evaluate(model, test_dl, device)
-    save_checkpoint(model, arch, test_metrics, make_model_version(arch), model_path)
-    return test_metrics
-```
-
----
-
-## 9. Running training via `scripts/train.py`
-
-Training is exposed as a CLI entrypoint at `backend/scripts/train.py`, which reads defaults from
-`Settings` (so `MODEL_ARCH` and `MODEL_PATH` come from the canonical ENV) and allows overrides via
-flags.
-
-```python
-# backend/scripts/train.py (entrypoint)
-import argparse
-from app.core.config import Settings
-from app.infrastructure.ml.training.trainer import train
-
-def main() -> None:
-    settings = Settings()
-    ap = argparse.ArgumentParser(description="Train the AIMIP chest X-ray classifier")
-    ap.add_argument("--data-dir", default="./data/chest_xray")
-    ap.add_argument("--arch", default=settings.MODEL_ARCH,     # densenet121|efficientnet_b0
-                    choices=["densenet121", "efficientnet_b0"])
-    ap.add_argument("--model-path", default=settings.MODEL_PATH)
-    ap.add_argument("--epochs", type=int, default=15)
-    ap.add_argument("--batch-size", type=int, default=32)
-    ap.add_argument("--patience", type=int, default=4)
-    ap.add_argument("--unfreeze-all", action="store_true")
-    ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--device", default="cuda")
-    args = ap.parse_args()
-
-    metrics = train(args.data_dir, args.arch, args.model_path,
-                    args.epochs, args.batch_size, args.patience,
-                    args.unfreeze_all, args.seed, args.device)
-    print("Test metrics:", metrics)
-
-if __name__ == "__main__":
-    main()
-```
-
-**Invocation (from `backend/`):**
+Both architectures share the identical pipeline, transforms and evaluation, so
+they are directly comparable. Switch with a single flag — no code change:
 
 ```bash
-# default: densenet121 from ENV, best checkpoint → MODEL_PATH (./data/weights/model.pt)
-python scripts/train.py --data-dir ./data/chest_xray
-
-# alternative architecture + optional full unfreeze
-python scripts/train.py --arch efficientnet_b0 --unfreeze-all --epochs 20
+python scripts/train.py --config configs/training.yaml --arch densenet121
+python scripts/train.py --config configs/training.yaml --arch efficientnet_b0
 ```
 
-On completion the checkpoint at `MODEL_PATH` is immediately picked up by the inference service on the
-next model load; there is no separate deployment step for a local run. See
-[Model Inference](11_Model_Inference.md).
+| Architecture | Params | Notes |
+|--------------|--------|-------|
+| DenseNet-121 | ~8.0 M | strong feature reuse; default |
+| EfficientNet-B0 | ~5.3 M | lighter, mobile-friendly |
 
----
+Compare their registered `metrics` (accuracy / F1 / ROC-AUC) in
+`data/weights/registry.json`; promote the better one by keeping it `approved`.
 
-## 10. Cross-references
+## 8. Running the pipeline
 
-- Port / factory / versioning → [AI Architecture](09_AI_Architecture.md)
-- Loading and serving the checkpoint → [Model Inference](11_Model_Inference.md)
-- Explanations over the trained model → [Grad-CAM](12_GradCAM.md)
-- Where predictions are persisted → [Database Design](17_Database_Design.md)
-- `MODEL_ARCH`, `MODEL_PATH` and paths → [Environment Configuration](31_Environment_Configuration.md)
+```bash
+# Real dataset (place under data/datasets/chest_xray/ first)
+python scripts/train.py --config configs/training.yaml
+
+# Pipeline verification without any download
+python scripts/train.py --synthetic --arch densenet121 --epochs 6
+
+# Then start the API — inference auto-loads the registered model
+uvicorn app.main:app --reload
+```

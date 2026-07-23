@@ -38,37 +38,71 @@ class TorchInferenceEngine(InferenceEngine):
         self._device = torch.device("cpu")
         self._model: torch.nn.Module | None = None
         self._model_version = "uninitialised"
+        self._loaded_version: str | None = None
         self._lock = threading.Lock()
 
     # ------------------------------------------------------------------ #
     # Model loading (lazy, thread-safe, idempotent)
     # ------------------------------------------------------------------ #
     def _ensure_model(self) -> torch.nn.Module:
-        """Build the model once, loading checkpoint weights when present."""
+        """Build the model once, preferring the latest approved registered model.
+
+        Resolution order: (1) the newest *approved* model in the registry for this
+        architecture, (2) a raw checkpoint at ``MODEL_PATH``, (3) the pretrained
+        backbone fallback. Selecting a trained model requires no code change — the
+        training pipeline registers it and the engine picks it up.
+        """
         if self._model is not None:
             return self._model
         with self._lock:
             if self._model is not None:  # re-check inside the lock
                 return self._model
             model = self._classifier.build(pretrained=self._pretrained)
-            source = "imagenet-pretrained" if self._pretrained else "random-init"
-            checkpoint = Path(self._settings.model_path)
-            if checkpoint.exists():
-                state = torch.load(checkpoint, map_location=self._device, weights_only=True)
-                model.load_state_dict(state)
-                source = "checkpoint"
-                logger.info("inference.weights.loaded", path=str(checkpoint))
-            else:
+            version_label = "imagenet-pretrained" if self._pretrained else "random-init"
+
+            if not self._load_from_registry(model) and not self._load_from_model_path(model):
                 logger.warning(
                     "inference.weights.fallback",
-                    detail="MODEL_PATH not found; using pretrained backbone.",
-                    path=str(checkpoint),
+                    detail="No registered/checkpoint weights; using pretrained backbone.",
                 )
+            else:
+                version_label = self._loaded_version or version_label
+
             model.to(self._device)
             model.eval()
             self._model = model
-            self._model_version = f"{self._classifier.arch}:{source}"
+            self._model_version = f"{self._classifier.arch}:{version_label}"
         return self._model
+
+    def _load_from_registry(self, model: torch.nn.Module) -> bool:
+        """Load the newest approved registered model for this arch, if any."""
+        from app.infrastructure.ml.model_registry import ModelRegistry, default_registry_path
+
+        registry = ModelRegistry(default_registry_path(self._settings.model_path))
+        entry = registry.latest_approved(self._classifier.arch)
+        if entry is None or not Path(entry.checkpoint_path).exists():
+            return False
+        state = torch.load(entry.checkpoint_path, map_location=self._device, weights_only=True)
+        model.load_state_dict(state)
+        self._loaded_version = f"trained-v{entry.version}"
+        logger.info(
+            "inference.weights.registry",
+            version=entry.version,
+            checkpoint=entry.checkpoint_path,
+            metrics=entry.metrics,
+        )
+        return True
+
+    def _load_from_model_path(self, model: torch.nn.Module) -> bool:
+        """Load a raw state-dict checkpoint from ``MODEL_PATH``, if present."""
+        checkpoint = Path(self._settings.model_path)
+        if not checkpoint.exists():
+            return False
+        state = torch.load(checkpoint, map_location=self._device, weights_only=True)
+        model.load_state_dict(state)
+        self._loaded_version = "checkpoint"
+        logger.info("inference.weights.loaded", path=str(checkpoint))
+        return True
 
     def warmup(self) -> None:
         """Eagerly build/load the model so the first request is not penalised."""
