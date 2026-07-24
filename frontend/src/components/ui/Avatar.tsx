@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { cn } from '@/lib/utils';
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg';
@@ -26,7 +28,7 @@ interface AvatarProps {
 }
 
 /** Initials avatar with the brand gradient — no external image dependency. */
-export function Avatar({ name, size = 'sm', online = false, className }: AvatarProps) {
+export const Avatar = memo(function Avatar({ name, size = 'sm', online = false, className }: AvatarProps) {
   return (
     <span className={cn('relative inline-flex shrink-0', className)}>
       <span
@@ -47,4 +49,4 @@ export function Avatar({ name, size = 'sm', online = false, className }: AvatarP
       <span className="sr-only">{name}</span>
     </span>
   );
-}
+});

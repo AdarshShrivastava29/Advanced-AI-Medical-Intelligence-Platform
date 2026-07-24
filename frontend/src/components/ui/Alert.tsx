@@ -7,17 +7,17 @@ type AlertTone = 'info' | 'success' | 'warning' | 'danger' | 'clinical';
 
 const toneClasses: Record<AlertTone, string> = {
   info: 'border-brand-500/25 bg-brand-500/[0.07] text-brand-800 dark:text-brand-200',
-  success: 'border-success-500/25 bg-success-500/[0.07] text-success-700 dark:text-success-500',
-  warning: 'border-warning-500/30 bg-warning-500/[0.08] text-warning-700 dark:text-warning-500',
-  danger: 'border-danger-500/25 bg-danger-500/[0.07] text-danger-700 dark:text-danger-500',
+  success: 'border-success-500/25 bg-success-500/[0.07] text-success-700 dark:text-success-400',
+  warning: 'border-warning-500/30 bg-warning-500/[0.08] text-warning-700 dark:text-warning-400',
+  danger: 'border-danger-500/25 bg-danger-500/[0.07] text-danger-700 dark:text-danger-400',
   clinical: 'border-line bg-surface-muted text-fg-muted',
 };
 
 const iconTone: Record<AlertTone, string> = {
   info: 'text-brand-600 dark:text-brand-300',
-  success: 'text-success-600 dark:text-success-500',
-  warning: 'text-warning-600 dark:text-warning-500',
-  danger: 'text-danger-600 dark:text-danger-500',
+  success: 'text-success-600 dark:text-success-400',
+  warning: 'text-warning-600 dark:text-warning-400',
+  danger: 'text-danger-600 dark:text-danger-400',
   clinical: 'text-fg-subtle',
 };
 
@@ -43,7 +43,7 @@ export function Alert({ tone = 'info', title, children, icon, action, className 
   return (
     <div
       role={tone === 'danger' || tone === 'warning' ? 'alert' : 'note'}
-      className={cn('flex items-start gap-3 rounded-xl border px-4 py-3.5 text-sm', toneClasses[tone], className)}
+      className={cn('flex items-start gap-3 rounded-xl border px-4 py-4 text-sm', toneClasses[tone], className)}
     >
       <span className={cn('mt-0.5 shrink-0', iconTone[tone])}>{icon ?? defaultIcons[tone]}</span>
       <div className="min-w-0 flex-1">

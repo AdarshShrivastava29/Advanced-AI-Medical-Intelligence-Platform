@@ -65,8 +65,8 @@ export function Tabs<T extends string>({
               'relative flex shrink-0 items-center gap-2 whitespace-nowrap font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50',
               size === 'sm' ? 'text-xs' : 'text-sm',
               isPill
-                ? cn('rounded-lg px-3', size === 'sm' ? 'h-7' : 'h-9')
-                : cn('px-3', size === 'sm' ? 'pb-2 pt-1' : 'pb-3 pt-1.5'),
+                ? cn('rounded-lg px-3', size === 'sm' ? 'h-8' : 'h-9')
+                : cn('px-3', size === 'sm' ? 'pb-2 pt-1' : 'pb-3 pt-2'),
               active ? 'text-brand-700 dark:text-brand-300' : 'text-fg-muted hover:text-fg',
             )}
           >

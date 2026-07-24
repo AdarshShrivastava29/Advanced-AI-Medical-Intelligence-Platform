@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { CommandPalette } from '@/components/layout/CommandPalette';
@@ -49,7 +49,14 @@ export function AppShell() {
   }, []);
 
   // Surface out-of-distribution alerts as a badge on the History destination.
-  const navBadges = { '/history': alerts.filter((alert) => alert.tone === 'warning').length };
+  // Memoised so the (memoised) sidebar does not re-render on unrelated state.
+  const reviewCount = alerts.filter((alert) => alert.tone === 'warning').length;
+  const navBadges = useMemo(() => ({ '/history': reviewCount }), [reviewCount]);
+
+  const openDrawer = useCallback(() => setDrawerOpen(true), []);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const openSearch = useCallback(() => setSearchOpen(true), []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   return (
     <div className="app-gradient min-h-screen">
@@ -84,11 +91,11 @@ export function AppShell() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              onClick={() => setDrawerOpen(false)}
+              onClick={closeDrawer}
               aria-hidden
             />
             <motion.aside
-              className="fixed inset-y-0 left-0 z-50 w-[17.5rem] border-r border-line bg-surface shadow-elevated lg:hidden"
+              className="fixed inset-y-0 left-0 z-50 w-[17.5rem] border-r border-line bg-surface elevation-3 lg:hidden"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
@@ -99,7 +106,7 @@ export function AppShell() {
             >
               <button
                 type="button"
-                onClick={() => setDrawerOpen(false)}
+                onClick={closeDrawer}
                 aria-label="Close navigation menu"
                 className="absolute right-3 top-4 z-10 grid h-8 w-8 place-items-center rounded-lg text-fg-subtle transition hover:bg-surface-sunken hover:text-fg"
               >
@@ -108,7 +115,7 @@ export function AppShell() {
               <Sidebar
                 variant="drawer"
                 collapsed={false}
-                onNavigate={() => setDrawerOpen(false)}
+                onNavigate={closeDrawer}
                 onSignOut={handleSignOut}
                 badges={navBadges}
               />
@@ -127,27 +134,27 @@ export function AppShell() {
       >
         <div className="no-print">
           <Topbar
-            onOpenDrawer={() => setDrawerOpen(true)}
-            onOpenSearch={() => setSearchOpen(true)}
+            onOpenDrawer={openDrawer}
+            onOpenSearch={openSearch}
             onSignOut={handleSignOut}
           />
         </div>
 
         <main
           id="main"
-          className="mx-auto w-full max-w-[90rem] px-4 py-7 sm:px-6 lg:px-8 lg:py-9 print:max-w-none print:p-0"
+          className="mx-auto w-full max-w-[90rem] px-4 py-8 sm:px-6 lg:px-8 lg:py-8 print:max-w-none print:p-0"
         >
           <Outlet />
         </main>
 
         <footer className="no-print mx-auto w-full max-w-[90rem] px-4 pb-8 sm:px-6 lg:px-8">
-          <p className="border-t border-line pt-5 text-xs leading-relaxed text-fg-subtle">
+          <p className="border-t border-line pt-6 text-xs leading-relaxed text-fg-subtle">
             {CLINICAL_DISCLAIMER}
           </p>
         </footer>
       </div>
 
-      <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <CommandPalette open={searchOpen} onClose={closeSearch} />
     </div>
   );
 }

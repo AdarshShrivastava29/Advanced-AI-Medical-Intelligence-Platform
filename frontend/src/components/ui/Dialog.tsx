@@ -115,12 +115,12 @@ export function Dialog({
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              'relative flex max-h-[92vh] w-full flex-col rounded-t-3xl border border-line bg-surface shadow-elevated outline-none sm:rounded-2xl',
+              'relative flex max-h-[92vh] w-full flex-col rounded-t-3xl border border-line bg-surface elevation-3 outline-none sm:rounded-2xl',
               sizes[size],
               className,
             )}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
+            <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-6">
               <div className="min-w-0">
                 <h2 id="dialog-title" className="text-lg font-semibold text-fg">
                   {title}
@@ -136,7 +136,7 @@ export function Dialog({
               )}
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">{children}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">{children}</div>
 
             {footer && (
               <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line bg-surface-muted px-6 py-4">

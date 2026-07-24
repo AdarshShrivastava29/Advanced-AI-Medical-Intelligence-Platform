@@ -45,13 +45,13 @@ export function ReportView({
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* ---- Action bar (never printed) ---- */}
       <div className="no-print flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <RiskBadge level={report.risk_level} />
           <Badge tone="brand" size="sm">
-            <Sparkles size={11} aria-hidden /> AI-drafted
+            <Sparkles size={12} aria-hidden /> AI-drafted
           </Badge>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -100,7 +100,7 @@ export function ReportView({
       {/* ---- Document ---- */}
       <article className="print-sheet rounded-2xl border border-line bg-surface p-6 sm:p-8">
         {/* Letterhead */}
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-brand-700 pb-5 dark:border-accent-400">
+        <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-brand-700 pb-6 dark:border-accent-400">
           <div className="flex items-center gap-3">
             <BrandMark size="lg" />
             <div>
@@ -118,7 +118,7 @@ export function ReportView({
         </header>
 
         {/* Study metadata */}
-        <dl className="grid gap-x-8 gap-y-3 border-b border-line py-5 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="grid gap-x-8 gap-y-3 border-b border-line py-6 sm:grid-cols-2 lg:grid-cols-3">
           {metadata.map((entry) => (
             <div key={entry.label}>
               <dt className="medical-label">{entry.label}</dt>
@@ -129,8 +129,8 @@ export function ReportView({
 
         {/* Risk banner */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-4">
-          <div className="flex items-center gap-2.5">
-            <Stethoscope size={17} className="text-fg-subtle" aria-hidden />
+          <div className="flex items-center gap-3">
+            <Stethoscope size={18} className="text-fg-subtle" aria-hidden />
             <span className="text-sm font-medium text-fg-muted">Assessed risk level</span>
           </div>
           <RiskBadge level={report.risk_level} />
@@ -155,11 +155,11 @@ export function ReportView({
         </div>
 
         {/* Signature / review block */}
-        <footer className="space-y-4 border-t border-line pt-5">
-          <div className="grid gap-5 sm:grid-cols-2">
+        <footer className="space-y-4 border-t border-line pt-6">
+          <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <p className="medical-label">Prepared by</p>
-              <p className="mt-1.5 text-sm font-medium text-fg">
+              <p className="mt-2 text-sm font-medium text-fg">
                 AIMIP automated analysis ({report.llm_provider})
               </p>
               <p className="text-xs text-fg-subtle">Generated {formatDate(report.created_at)}</p>
@@ -167,7 +167,7 @@ export function ReportView({
             <div>
               <p className="medical-label">Reviewed by</p>
               <div className="mt-4 border-b border-dashed border-line-strong" />
-              <p className="mt-1.5 text-xs text-fg-subtle">
+              <p className="mt-2 text-xs text-fg-subtle">
                 Reporting clinician — signature &amp; date
               </p>
             </div>

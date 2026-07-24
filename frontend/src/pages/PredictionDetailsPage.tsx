@@ -38,9 +38,9 @@ export function PredictionDetailsPage() {
       />
 
       {isLoading ? (
-        <div className="space-y-5">
+        <div className="space-y-6">
           <Skeleton className="h-56 rounded-2xl" />
-          <div className="grid gap-5 xl:grid-cols-5">
+          <div className="grid gap-6 xl:grid-cols-5">
             <Skeleton className="h-[30rem] rounded-2xl xl:col-span-3" />
             <Skeleton className="h-[30rem] rounded-2xl xl:col-span-2" />
           </div>

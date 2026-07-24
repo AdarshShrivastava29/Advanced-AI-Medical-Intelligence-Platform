@@ -25,7 +25,7 @@ export function NotFoundPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-lg rounded-[28px] border border-line bg-surface p-8 text-center shadow-panel sm:p-10"
+          className="w-full max-w-lg rounded-[28px] border border-line bg-surface p-8 text-center elevation-4 sm:p-10"
         >
           <EmptyArt
             kind="search"
@@ -34,7 +34,7 @@ export function NotFoundPage() {
 
           <p className="medical-label mt-6">Error 404</p>
           <h1 className="mt-2 font-display text-display-sm font-bold text-fg">Page not found</h1>
-          <p className="mx-auto mt-2.5 max-w-sm text-sm leading-relaxed text-fg-muted">
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-fg-muted">
             This route does not exist in the platform. It may have been moved, or the link you
             followed was incomplete.
           </p>
@@ -43,7 +43,7 @@ export function NotFoundPage() {
             {pathname}
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
             <Link to={homeTo}>
               <Button leadingIcon={<Home size={16} />}>
                 {isAuthenticated ? 'Back to dashboard' : 'Back to home'}
@@ -59,11 +59,11 @@ export function NotFoundPage() {
           </div>
 
           {isAuthenticated && (
-            <div className="mt-7 border-t border-line pt-5">
+            <div className="mt-8 border-t border-line pt-6">
               <p className="text-xs text-fg-subtle">
-                <span className="inline-flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-2">
                   <Search size={12} aria-hidden /> Press{' '}
-                  <kbd className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px]">
+                  <kbd className="rounded border border-line px-2 py-0.5 font-mono text-[10px]">
                     ⌘K
                   </kbd>{' '}
                   to search the workspace
@@ -74,7 +74,7 @@ export function NotFoundPage() {
         </motion.div>
       </div>
 
-      <p className="flex items-center justify-center gap-1.5 text-xs text-fg-subtle">
+      <p className="flex items-center justify-center gap-2 text-xs text-fg-subtle">
         <LifeBuoy size={12} aria-hidden /> Still stuck? Contact your platform administrator.
       </p>
     </div>

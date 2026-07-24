@@ -27,9 +27,9 @@ interface StatCardProps {
 
 const iconTone: Record<Tone, string> = {
   brand: 'text-brand-600 bg-brand-500/10 ring-brand-500/15 dark:text-brand-300',
-  green: 'text-success-600 bg-success-500/10 ring-success-500/15 dark:text-success-500',
-  amber: 'text-warning-600 bg-warning-500/10 ring-warning-500/20 dark:text-warning-500',
-  red: 'text-danger-600 bg-danger-500/10 ring-danger-500/15 dark:text-danger-500',
+  green: 'text-success-600 bg-success-500/10 ring-success-500/15 dark:text-success-400',
+  amber: 'text-warning-600 bg-warning-500/10 ring-warning-500/20 dark:text-warning-400',
+  red: 'text-danger-600 bg-danger-500/10 ring-danger-500/15 dark:text-danger-400',
   teal: 'text-clinical-600 bg-clinical-500/10 ring-clinical-500/15 dark:text-clinical-300',
 };
 
@@ -66,7 +66,7 @@ export function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        'surface-card group relative overflow-hidden p-5',
+        'surface-card group relative overflow-hidden p-6',
         interactive && 'lift cursor-pointer',
         className,
       )}
@@ -81,7 +81,7 @@ export function StatCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-fg-muted">{label}</p>
-          <p className="mt-1.5 font-display text-[1.75rem] font-bold leading-none text-fg nums">{value}</p>
+          <p className="mt-2 font-display text-[1.75rem] font-bold leading-none text-fg nums">{value}</p>
         </div>
         <span
           className={cn(
@@ -99,13 +99,13 @@ export function StatCard({
           {trendValue !== null && (
             <span
               className={cn(
-                'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold nums',
-                direction === 'up' && 'bg-success-500/10 text-success-600 dark:text-success-500',
-                direction === 'down' && 'bg-danger-500/10 text-danger-600 dark:text-danger-500',
+                'inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold nums',
+                direction === 'up' && 'bg-success-500/10 text-success-600 dark:text-success-400',
+                direction === 'down' && 'bg-danger-500/10 text-danger-600 dark:text-danger-400',
                 direction === 'flat' && 'bg-fg/[0.06] text-fg-muted',
               )}
             >
-              <TrendIcon size={13} aria-hidden />
+              <TrendIcon size={14} aria-hidden />
               {trendValue > 0 ? '+' : ''}
               {trendValue.toFixed(1)}%
             </span>

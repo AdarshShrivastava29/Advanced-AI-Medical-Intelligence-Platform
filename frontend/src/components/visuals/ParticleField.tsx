@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { memo } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -18,7 +19,7 @@ const PARTICLES = [
 ];
 
 /** Slow-drifting particulate wash used behind hero panels. */
-export function ParticleField({ className }: { className?: string }) {
+export const ParticleField = memo(function ParticleField({ className }: { className?: string }) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -51,4 +52,4 @@ export function ParticleField({ className }: { className?: string }) {
       ))}
     </svg>
   );
-}
+});

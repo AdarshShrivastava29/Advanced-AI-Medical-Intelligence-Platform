@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { memo } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -27,7 +28,7 @@ const NODES = LAYERS.flatMap((layer, layerIndex) =>
  * Decorative inference-graph visualisation. Edges pulse in a slow travelling
  * wave to suggest a forward pass without ever competing with foreground copy.
  */
-export function NeuralNetwork({ className }: { className?: string }) {
+export const NeuralNetwork = memo(function NeuralNetwork({ className }: { className?: string }) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -76,4 +77,4 @@ export function NeuralNetwork({ className }: { className?: string }) {
       </g>
     </svg>
   );
-}
+});

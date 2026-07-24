@@ -54,8 +54,8 @@ function SidebarNav({ collapsed, onNavigate, badges = {} }: SidebarNavProps) {
                   onClick={onNavigate}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200 ease-premium',
-                    collapsed ? 'h-11 w-11 justify-center' : 'gap-3 px-3 py-2.5',
+                    'group relative flex items-center rounded-xl text-sm font-medium transition-[transform,box-shadow,border-color,background-color,color,opacity] duration-200 ease-premium',
+                    collapsed ? 'h-11 w-11 justify-center' : 'gap-3 px-3 py-3',
                     active
                       ? 'bg-brand-600/10 text-brand-700 ring-1 ring-inset ring-brand-600/15 dark:bg-accent-400/[0.10] dark:text-accent-200 dark:ring-accent-400/20'
                       : 'text-fg-muted hover:bg-surface-sunken hover:text-fg',
@@ -145,7 +145,7 @@ export function Sidebar({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Brand + organisation */}
-      <div className={cn('shrink-0 border-b border-line', isCollapsed ? 'px-3 py-4' : 'px-5 py-4')}>
+      <div className={cn('shrink-0 border-b border-line', isCollapsed ? 'px-3 py-4' : 'px-6 py-4')}>
         <div
           className={cn(
             'flex gap-2',
@@ -166,7 +166,7 @@ export function Sidebar({
                 transition={{ duration: 0.25 }}
                 className="grid place-items-center"
               >
-                <ChevronLeft size={15} aria-hidden />
+                <ChevronLeft size={16} aria-hidden />
               </motion.span>
             </button>
           )}
@@ -181,7 +181,7 @@ export function Sidebar({
               transition={{ duration: 0.22 }}
               className="overflow-hidden"
             >
-              <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-surface-sunken px-3 py-2.5 ring-1 ring-inset ring-line">
+              <div className="mt-4 flex items-center gap-3 rounded-xl bg-surface-sunken px-3 py-3 ring-1 ring-inset ring-line">
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-300">
                   <Building2 size={16} aria-hidden />
                 </span>
@@ -196,12 +196,12 @@ export function Sidebar({
       </div>
 
       {/* Navigation */}
-      <div className={cn('min-h-0 flex-1 overflow-y-auto py-5', isCollapsed ? 'px-3' : 'px-5')}>
+      <div className={cn('min-h-0 flex-1 overflow-y-auto py-6', isCollapsed ? 'px-3' : 'px-6')}>
         <SidebarNav collapsed={isCollapsed} onNavigate={onNavigate} badges={badges} />
       </div>
 
       {/* System status */}
-      <div className={cn('shrink-0 border-t border-line', isCollapsed ? 'px-3 py-3' : 'px-5 py-4')}>
+      <div className={cn('shrink-0 border-t border-line', isCollapsed ? 'px-3 py-3' : 'px-6 py-4')}>
         {isCollapsed ? (
           <Tooltip side="right" content={status.label}>
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-surface-sunken">
@@ -210,7 +210,7 @@ export function Sidebar({
             </span>
           </Tooltip>
         ) : (
-          <div className="rounded-xl bg-surface-sunken px-3 py-2.5 ring-1 ring-inset ring-line">
+          <div className="rounded-xl bg-surface-sunken px-3 py-3 ring-1 ring-inset ring-line">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
                 {status.state === 'operational' && (
@@ -230,7 +230,7 @@ export function Sidebar({
 
       {/* Clinician profile */}
       {user && (
-        <div className={cn('shrink-0 border-t border-line', isCollapsed ? 'px-3 py-3' : 'px-5 py-4')}>
+        <div className={cn('shrink-0 border-t border-line', isCollapsed ? 'px-3 py-3' : 'px-6 py-4')}>
           {isCollapsed ? (
             <div className="flex flex-col items-center gap-2">
               <Tooltip side="right" content={user.full_name}>
@@ -241,9 +241,9 @@ export function Sidebar({
                   type="button"
                   onClick={onSignOut}
                   aria-label="Sign out"
-                  className="grid h-9 w-9 place-items-center rounded-lg text-fg-subtle transition hover:bg-danger-500/10 hover:text-danger-600"
+                  className="grid h-9 w-9 place-items-center rounded-lg text-fg-subtle transition hover:bg-danger-500/10 hover:text-danger-600 dark:hover:text-danger-400"
                 >
-                  <LogOut size={17} aria-hidden />
+                  <LogOut size={18} aria-hidden />
                 </button>
               </Tooltip>
             </div>
@@ -256,16 +256,16 @@ export function Sidebar({
                   <p className="truncate text-[11px] text-fg-subtle">{user.email}</p>
                 </div>
               </div>
-              <div className="mt-2.5 flex items-center gap-2">
+              <div className="mt-3 flex items-center gap-2">
                 <Badge tone={user.role === 'admin' ? 'violet' : 'brand'} size="sm">
-                  <ShieldCheck size={11} aria-hidden />
+                  <ShieldCheck size={12} aria-hidden />
                   {ROLE_LABEL[user.role] ?? user.role}
                 </Badge>
               </div>
               <button
                 type="button"
                 onClick={onSignOut}
-                className="mt-3 flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-fg-muted transition hover:bg-danger-500/10 hover:text-danger-600"
+                className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-fg-muted transition hover:bg-danger-500/10 hover:text-danger-600 dark:hover:text-danger-400"
               >
                 <LogOut size={16} aria-hidden /> Sign out
               </button>

@@ -36,7 +36,7 @@ export function ConfidenceMeter({
 }: ConfidenceMeterProps) {
   const clamped = Math.max(0, Math.min(1, value));
   return (
-    <div className={cn('space-y-1.5', className)}>
+    <div className={cn('space-y-2', className)}>
       {label && (
         <div className="flex items-baseline justify-between gap-3 text-sm">
           <span className="truncate text-fg-muted">{label}</span>

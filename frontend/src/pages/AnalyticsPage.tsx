@@ -74,7 +74,7 @@ export function AnalyticsPage() {
           />
         </Card>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* ---------------- Headline KPIs ---------------- */}
           <section aria-label="Headline metrics">
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -85,14 +85,14 @@ export function AnalyticsPage() {
                   <StatCard
                     label="Total studies"
                     value={overview?.total_predictions ?? 0}
-                    icon={<Layers size={21} />}
+                    icon={<Layers size={20} />}
                     series={trends.map((point) => point.count)}
                     trendLabel="All time"
                   />
                   <StatCard
                     label="Pneumonia flagged"
                     value={overview?.pneumonia_count ?? 0}
-                    icon={<Activity size={21} />}
+                    icon={<Activity size={20} />}
                     tone="red"
                     trendLabel={
                       overview && overview.total_predictions > 0
@@ -104,7 +104,7 @@ export function AnalyticsPage() {
                   <StatCard
                     label="Normal studies"
                     value={overview?.normal_count ?? 0}
-                    icon={<CheckCircle2 size={21} />}
+                    icon={<CheckCircle2 size={20} />}
                     tone="green"
                     trendLabel={
                       overview && overview.total_predictions > 0
@@ -116,7 +116,7 @@ export function AnalyticsPage() {
                   <StatCard
                     label="Out-of-distribution"
                     value={overview?.ood_count ?? 0}
-                    icon={<ShieldAlert size={21} />}
+                    icon={<ShieldAlert size={20} />}
                     tone="amber"
                     trendLabel="Require manual review"
                     delay={0.15}
@@ -132,7 +132,7 @@ export function AnalyticsPage() {
               eyebrow="Throughput"
               title="Study volume over time"
               subtitle={`Daily analysed radiographs across the last ${days} days`}
-              icon={<TrendingUp size={19} />}
+              icon={<TrendingUp size={18} />}
               divided
             />
 
@@ -142,7 +142,7 @@ export function AnalyticsPage() {
               <>
                 <TrendChart data={trends} height={300} />
 
-                <dl className="mt-5 grid gap-4 border-t border-line pt-5 sm:grid-cols-3">
+                <dl className="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-3">
                   <div>
                     <dt className="medical-label">Studies in window</dt>
                     <dd className="mt-1 font-display text-2xl font-bold text-fg">
@@ -167,13 +167,13 @@ export function AnalyticsPage() {
           </Card>
 
           {/* ---------------- Distributions ---------------- */}
-          <div className="grid gap-5 xl:grid-cols-2">
+          <div className="grid gap-6 xl:grid-cols-2">
             <Card>
               <CardHeader
                 eyebrow="Case mix"
                 title="Classification distribution"
                 subtitle="Normal versus pneumonia across all studies"
-                icon={<PieChart size={19} />}
+                icon={<PieChart size={18} />}
                 divided
               />
               {isLoading ? (
@@ -192,7 +192,7 @@ export function AnalyticsPage() {
                     ? `Mean ${percent(overview.average_confidence, 1)} across ${overview.total_predictions} studies`
                     : 'Confidence bands across all studies'
                 }
-                icon={<Gauge size={19} />}
+                icon={<Gauge size={18} />}
                 divided
               />
               {isLoading ? (
@@ -214,7 +214,7 @@ export function AnalyticsPage() {
             <CardHeader
               eyebrow="Methodology"
               title="How these figures are calculated"
-              icon={<BarChart3 size={19} />}
+              icon={<BarChart3 size={18} />}
               divided
             />
             <ul className="grid gap-4 text-xs leading-relaxed text-fg-muted sm:grid-cols-3">
@@ -233,7 +233,7 @@ export function AnalyticsPage() {
                 ],
               ].map(([title, body]) => (
                 <li key={title} className="rounded-xl bg-surface-muted p-4">
-                  <p className="medical-label mb-1.5">{title}</p>
+                  <p className="medical-label mb-2">{title}</p>
                   <p>{body}</p>
                 </li>
               ))}

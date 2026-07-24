@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { memo } from 'react';
 
 import { cn, percent } from '@/lib/utils';
 
@@ -15,7 +16,7 @@ const barTone = (label: string, isPredicted: boolean): string => {
 };
 
 /** Per-class softmax breakdown, highlighting the winning class. */
-export function ProbabilityBreakdown({ probabilities, predictedClass }: ProbabilityBreakdownProps) {
+export const ProbabilityBreakdown = memo(function ProbabilityBreakdown({ probabilities, predictedClass }: ProbabilityBreakdownProps) {
   const entries = Object.entries(probabilities).sort((a, b) => b[1] - a[1]);
 
   return (
@@ -24,7 +25,7 @@ export function ProbabilityBreakdown({ probabilities, predictedClass }: Probabil
         const isPredicted = label === predictedClass;
         return (
           <li key={label}>
-            <div className="mb-1.5 flex items-baseline justify-between gap-3">
+            <div className="mb-2 flex items-baseline justify-between gap-3">
               <span
                 className={cn(
                   'truncate text-sm',
@@ -33,7 +34,7 @@ export function ProbabilityBreakdown({ probabilities, predictedClass }: Probabil
               >
                 {label}
                 {isPredicted && (
-                  <span className="ml-2 rounded bg-brand-600/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-700 dark:bg-accent-400/10 dark:text-accent-300">
+                  <span className="ml-2 rounded bg-brand-600/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-700 dark:bg-accent-400/10 dark:text-accent-300">
                     Predicted
                   </span>
                 )}
@@ -60,4 +61,4 @@ export function ProbabilityBreakdown({ probabilities, predictedClass }: Probabil
       })}
     </ul>
   );
-}
+});

@@ -35,7 +35,7 @@ export function AnalysisProgress({ uploadProgress }: { uploadProgress: number })
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl border border-line bg-surface-muted p-5 sm:p-6"
+      className="rounded-2xl border border-line bg-surface-muted p-6 sm:p-6"
     >
       <div className="flex items-center gap-4">
         <ClinicalLoader size={48} />
@@ -51,7 +51,7 @@ export function AnalysisProgress({ uploadProgress }: { uploadProgress: number })
         </div>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-6">
         <ProgressBar
           value={uploadProgress}
           indeterminate={!uploading}
@@ -60,7 +60,7 @@ export function AnalysisProgress({ uploadProgress }: { uploadProgress: number })
         />
       </div>
 
-      <ol className="mt-5 grid gap-3 sm:grid-cols-2">
+      <ol className="mt-6 grid gap-3 sm:grid-cols-2">
         {STAGES.map((stage, index) => {
           const done = index < activeIndex;
           const active = index === activeIndex;
@@ -78,14 +78,14 @@ export function AnalysisProgress({ uploadProgress }: { uploadProgress: number })
                 className={cn(
                   'grid h-8 w-8 shrink-0 place-items-center rounded-lg',
                   done
-                    ? 'bg-success-500/12 text-success-600 dark:text-success-500'
+                    ? 'bg-success-500/12 text-success-600 dark:text-success-400'
                     : active
                       ? 'bg-brand-600/12 text-brand-700 dark:bg-accent-400/12 dark:text-accent-300'
                       : 'bg-surface-sunken text-fg-subtle',
                 )}
                 aria-hidden
               >
-                {done ? <Check size={15} /> : <stage.Icon size={15} className={active ? 'animate-pulse' : ''} />}
+                {done ? <Check size={16} /> : <stage.Icon size={16} className={active ? 'animate-pulse' : ''} />}
               </span>
               <div className="min-w-0">
                 <p

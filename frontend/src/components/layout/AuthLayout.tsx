@@ -29,6 +29,33 @@ const CAPABILITIES = [
   },
 ];
 
+/**
+ * Entrance choreography. One shared curve and one shared distance across the
+ * whole screen — the hero copy leads, the capability cards follow, and the
+ * credential card settles on a spring so it feels placed rather than dropped.
+ */
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const RISE = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } },
+};
+
+const SCALE_IN = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.7, ease: EASE } },
+};
+
+const HERO_GROUP = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+
+const CARD_GROUP = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.28 } },
+};
+
 interface AuthLayoutProps {
   title: string;
   subtitle: string;
@@ -78,22 +105,23 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
           </span>
         </div>
 
-        <div className="relative grid grid-cols-[1fr_auto] items-center gap-8 py-10">
+        <motion.div
+          variants={HERO_GROUP}
+          initial="hidden"
+          animate="visible"
+          className="relative grid grid-cols-[1fr_auto] items-center gap-8 py-10"
+        >
           <div className="max-w-xl">
             <motion.h2
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              variants={RISE}
               className="font-display text-display-md font-bold leading-tight text-white xl:text-display-lg"
             >
               Medical intelligence
               <span className="block text-accent-300">radiologists can defend.</span>
             </motion.h2>
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-5 max-w-lg text-[0.9375rem] leading-relaxed text-white/75"
+              variants={RISE}
+              className="mt-6 max-w-lg text-[0.9375rem] leading-relaxed text-white/75"
             >
               Chest X-ray classification with visual explainability, provider-independent reporting
               and a review trail your department can stand behind.
@@ -101,34 +129,35 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
           </div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            variants={SCALE_IN}
             className="hidden h-56 w-56 shrink-0 text-accent-300/80 xl:block"
           >
             <ThoraxArt />
           </motion.div>
-        </div>
+        </motion.div>
 
-        <ul className="relative grid gap-4 sm:grid-cols-3">
-          {CAPABILITIES.map((capability, index) => (
+        <motion.ul
+          variants={CARD_GROUP}
+          initial="hidden"
+          animate="visible"
+          className="relative grid gap-4 sm:grid-cols-3"
+        >
+          {CAPABILITIES.map((capability) => (
             <motion.li
               key={capability.title}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 + index * 0.09, ease: [0.22, 1, 0.36, 1] }}
+              variants={RISE}
               className="rounded-xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm"
             >
               <capability.Icon size={18} className="text-accent-300" aria-hidden />
-              <p className="mt-2.5 text-sm font-semibold text-white">{capability.title}</p>
+              <p className="mt-3 text-sm font-semibold text-white">{capability.title}</p>
               <p className="mt-1 text-xs leading-relaxed text-white/75">{capability.body}</p>
             </motion.li>
           ))}
-        </ul>
+        </motion.ul>
       </aside>
 
       {/* ---------------- Credential panel ---------------- */}
-      <main className="relative flex min-h-screen flex-col px-5 py-6 sm:px-8 lg:px-10">
+      <main className="relative flex min-h-screen flex-col px-6 py-6 sm:px-8 lg:px-10">
         {/* Mobile atmosphere so the form never sits on a blank page. */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-64 lg:hidden" aria-hidden>
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-500/10 blur-3xl" />
@@ -145,31 +174,31 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
 
         <div className="relative flex flex-1 items-center justify-center py-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: 24, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 240, damping: 26, mass: 0.9, delay: 0.06 }}
             className="w-full max-w-[26rem]"
           >
-            <div className="rounded-[28px] border border-line bg-surface p-7 shadow-panel sm:p-9">
+            <div className="rounded-[28px] border border-line bg-surface p-8 elevation-4 sm:p-8">
               <div className="flex flex-col items-start">
                 <BrandMark size="lg" />
-                <h1 className="mt-5 font-display text-[1.75rem] font-bold leading-tight text-fg">
+                <h1 className="mt-6 font-display text-[1.75rem] font-bold leading-tight text-fg">
                   {title}
                 </h1>
-                <p className="mt-1.5 text-sm text-fg-muted">{subtitle}</p>
+                <p className="mt-2 text-sm text-fg-muted">{subtitle}</p>
               </div>
 
-              <div className="mt-7">{children}</div>
+              <div className="mt-8">{children}</div>
 
-              <div className="mt-7 border-t border-line pt-5">
-                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] font-medium text-fg-subtle">
-                  <span className="inline-flex items-center gap-1.5">
+              <div className="mt-8 border-t border-line pt-6">
+                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] font-medium text-fg-subtle">
+                  <span className="inline-flex items-center gap-2">
                     <Lock size={12} aria-hidden /> TLS 1.3 encrypted
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-2">
                     <ShieldCheck size={12} aria-hidden /> HIPAA-aligned controls
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-2">
                     <Activity size={12} aria-hidden /> Audit logged
                   </span>
                 </div>

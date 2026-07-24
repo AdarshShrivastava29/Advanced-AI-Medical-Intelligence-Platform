@@ -81,7 +81,7 @@ export function KnowledgeAssistantPage() {
         meta={
           <>
             <Badge tone="brand" size="sm">
-              <Database size={11} aria-hidden /> {indexedDocs.length} indexed document
+              <Database size={12} aria-hidden /> {indexedDocs.length} indexed document
               {indexedDocs.length === 1 ? '' : 's'}
             </Badge>
             <Badge tone="green" size="sm" dot>
@@ -107,12 +107,12 @@ export function KnowledgeAssistantPage() {
         }
       />
 
-      <div className="grid gap-5 xl:grid-cols-4">
+      <div className="grid gap-6 xl:grid-cols-4">
         {/* ---------------- Conversation ---------------- */}
         <Card padding="none" className="flex h-[calc(100vh-20rem)] min-h-[32rem] flex-col xl:col-span-3">
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
             {history.isLoading ? (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {Array.from({ length: 3 }).map((_, index) => (
                   <div key={index} className="flex gap-3">
                     <Skeleton className="h-9 w-9 shrink-0 rounded-xl" />
@@ -148,7 +148,7 @@ export function KnowledgeAssistantPage() {
                           key={prompt}
                           type="button"
                           onClick={() => void send(prompt)}
-                          className="group flex items-start gap-2.5 rounded-xl border border-line bg-surface-muted p-3 text-left text-sm text-fg-muted transition-all duration-200 ease-premium hover:-translate-y-0.5 hover:border-brand-500/40 hover:text-fg hover:shadow-card"
+                          className="group flex items-start gap-3 rounded-xl border border-line bg-surface-muted p-3 text-left text-sm text-fg-muted transition-[transform,box-shadow,border-color,background-color,color,opacity] duration-200 ease-premium hover:-translate-y-0.5 hover:border-brand-500/40 hover:text-fg hover:elevation-1"
                         >
                           <Sparkles
                             size={14}
@@ -190,7 +190,7 @@ export function KnowledgeAssistantPage() {
                       className="flex items-center gap-3"
                     >
                       <AssistantAvatar />
-                      <div className="flex items-center gap-2.5 rounded-2xl rounded-tl-sm border border-line bg-surface px-4 py-3 shadow-card">
+                      <div className="flex items-center gap-3 rounded-2xl rounded-tl-sm border border-line bg-surface px-4 py-3 elevation-1">
                         <span className="flex gap-1" aria-hidden>
                           {[0, 0.16, 0.32].map((delay) => (
                             <motion.span
@@ -232,18 +232,18 @@ export function KnowledgeAssistantPage() {
                 rows={2}
                 placeholder="Ask about your indexed medical literature…"
                 aria-label="Message the knowledge assistant"
-                className="w-full resize-none bg-transparent px-2.5 py-1.5 text-sm leading-relaxed text-fg outline-none placeholder:text-fg-subtle"
+                className="w-full resize-none bg-transparent px-3 py-2 text-sm leading-relaxed text-fg outline-none placeholder:text-fg-subtle"
               />
               <div className="flex items-center justify-between gap-3 px-1">
-                <p className="hidden items-center gap-1.5 text-[11px] text-fg-subtle sm:flex">
-                  <CornerDownLeft size={11} aria-hidden /> Enter to send · Shift + Enter for a new line
+                <p className="hidden items-center gap-2 text-[11px] text-fg-subtle sm:flex">
+                  <CornerDownLeft size={12} aria-hidden /> Enter to send · Shift + Enter for a new line
                 </p>
                 <Button
                   type="submit"
                   size="sm"
                   disabled={!input.trim()}
                   loading={ask.isPending}
-                  trailingIcon={!ask.isPending && <SendHorizonal size={15} />}
+                  trailingIcon={!ask.isPending && <SendHorizonal size={16} />}
                   className="ml-auto"
                 >
                   Ask
@@ -254,13 +254,13 @@ export function KnowledgeAssistantPage() {
         </Card>
 
         {/* ---------------- Side rail ---------------- */}
-        <div className="space-y-5">
+        <div className="space-y-6">
           <Card>
             <CardHeader
               eyebrow="Retrieval scope"
               title="Indexed sources"
               subtitle="Only these documents can be cited"
-              icon={<Database size={19} />}
+              icon={<Database size={18} />}
               action={
                 <Link to="/documents">
                   <Button variant="ghost" size="sm">
@@ -277,14 +277,14 @@ export function KnowledgeAssistantPage() {
                 ))}
               </div>
             ) : indexedDocs.length > 0 ? (
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {indexedDocs.slice(0, 6).map((doc) => (
                   <li
                     key={doc.id}
-                    className="flex items-center gap-2.5 rounded-xl bg-surface-muted px-3 py-2.5"
+                    className="flex items-center gap-3 rounded-xl bg-surface-muted px-3 py-3"
                   >
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-danger-500/10 text-danger-600 dark:text-danger-500">
-                      <FileText size={13} aria-hidden />
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-danger-500/10 text-danger-600 dark:text-danger-400">
+                      <FileText size={14} aria-hidden />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-medium text-fg">{doc.title}</p>
@@ -319,14 +319,14 @@ export function KnowledgeAssistantPage() {
             <CardHeader
               eyebrow="Guardrails"
               title="How answers are produced"
-              icon={<ShieldCheck size={19} />}
+              icon={<ShieldCheck size={18} />}
               divided
             />
             <ul className="space-y-3 text-xs leading-relaxed text-fg-muted">
               {GUARDRAILS.map(([title, body]) => (
-                <li key={title} className="flex gap-2.5">
+                <li key={title} className="flex gap-3">
                   <span
-                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-700 dark:bg-accent-400"
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-700 dark:bg-accent-400"
                     aria-hidden
                   />
                   <span>

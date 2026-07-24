@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 
 export type ToastKind = 'success' | 'error' | 'info';
@@ -28,12 +29,19 @@ export const useToastStore = create<ToastState>((set) => ({
   dismiss: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 }));
 
-/** Convenience hook returning toast helpers. */
+/**
+ * Convenience hook returning toast helpers. The object identity is stable
+ * (`push` never changes), so it is safe in effect and callback dependency
+ * arrays without triggering re-runs.
+ */
 export function useToast() {
   const push = useToastStore((s) => s.push);
-  return {
-    success: (message: string) => push('success', message),
-    error: (message: string) => push('error', message),
-    info: (message: string) => push('info', message),
-  };
+  return useMemo(
+    () => ({
+      success: (message: string) => push('success', message),
+      error: (message: string) => push('error', message),
+      info: (message: string) => push('info', message),
+    }),
+    [push],
+  );
 }

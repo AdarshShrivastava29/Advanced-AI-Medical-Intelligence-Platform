@@ -1,34 +1,81 @@
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
 import type { HTMLAttributes, ReactNode, ThHTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
 
 /**
- * Table primitives for medical-record style listings. The wrapper owns the
- * rounded border and horizontal scroll so wide tables never break the layout.
+ * Table primitives for medical-record listings. The wrapper owns the rounded
+ * border, the horizontal scroll and the vertical scroll region that makes the
+ * header stick, so a wide table never breaks the page layout.
  */
-export function TableWrapper({ children, className }: { children: ReactNode; className?: string }) {
+export function TableWrapper({
+  children,
+  className,
+  /** Caps the scroll region so `THead` can stick while the body scrolls. */
+  maxHeight,
+  /** Pinned below the scroll region — pagination belongs here, not inside it. */
+  footer,
+}: {
+  children: ReactNode;
+  className?: string;
+  maxHeight?: string;
+  footer?: ReactNode;
+}) {
   return (
-    <div className={cn('overflow-hidden rounded-2xl border border-line bg-surface shadow-card', className)}>
-      <div className="overflow-x-auto">{children}</div>
+    <div className={cn('overflow-hidden rounded-2xl border border-line bg-surface elevation-1', className)}>
+      <div className="overflow-auto" style={maxHeight ? { maxHeight } : undefined}>
+        {children}
+      </div>
+      {footer}
     </div>
   );
 }
 
 export function Table({ children, className, ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <table className={cn('w-full min-w-[42rem] border-collapse text-sm', className)} {...props}>
+    <table
+      className={cn('w-full min-w-[46rem] border-separate border-spacing-0 text-sm', className)}
+      {...props}
+    >
       {children}
     </table>
   );
 }
 
+/**
+ * Sticky header. `border-separate` on the table plus a bottom border on each
+ * cell keeps the hairline visible while the header is pinned — a `border-b` on
+ * the row itself collapses away under `position: sticky`.
+ */
 export function THead({ children, className }: { children: ReactNode; className?: string }) {
-  return <thead className={cn('bg-surface-muted', className)}>{children}</thead>;
+  return (
+    <thead
+      className={cn('sticky top-0 z-10 bg-surface-muted [&_th]:border-b [&_th]:border-line', className)}
+    >
+      {children}
+    </thead>
+  );
 }
 
-export function TBody({ children, className }: { children: ReactNode; className?: string }) {
-  return <tbody className={cn('divide-y divide-line', className)}>{children}</tbody>;
+interface TBodyProps {
+  children: ReactNode;
+  className?: string;
+  /** Subtle zebra striping for dense record lists. */
+  striped?: boolean;
+}
+
+export function TBody({ children, className, striped = false }: TBodyProps) {
+  return (
+    <tbody
+      className={cn(
+        '[&_tr:not(:last-child)_td]:border-b [&_tr:not(:last-child)_td]:border-line',
+        striped && '[&_tr:nth-child(even)_td]:bg-surface-muted/60',
+        className,
+      )}
+    >
+      {children}
+    </tbody>
+  );
 }
 
 export type SortDirection = 'asc' | 'desc' | null;
@@ -42,6 +89,9 @@ interface ThProps extends ThHTMLAttributes<HTMLTableCellElement> {
   align?: 'left' | 'center' | 'right';
 }
 
+const alignClass = (align: 'left' | 'center' | 'right') =>
+  align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left';
+
 export function Th({
   children,
   sortable = false,
@@ -51,8 +101,6 @@ export function Th({
   className,
   ...props
 }: ThProps) {
-  const alignClass =
-    align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left';
   const SortIcon = direction === 'asc' ? ArrowUp : direction === 'desc' ? ArrowDown : ChevronsUpDown;
 
   return (
@@ -61,7 +109,7 @@ export function Th({
       aria-sort={direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : undefined}
       className={cn(
         'whitespace-nowrap px-4 py-3 text-label font-semibold uppercase text-fg-subtle',
-        alignClass,
+        alignClass(align),
         className,
       )}
       {...props}
@@ -71,12 +119,20 @@ export function Th({
           type="button"
           onClick={onSort}
           className={cn(
-            'inline-flex items-center gap-1.5 rounded transition-colors hover:text-fg',
+            'group/sort -mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:text-fg',
+            align === 'right' && 'flex-row-reverse',
             direction && 'text-fg',
           )}
         >
           {children}
-          <SortIcon size={13} aria-hidden className={cn(!direction && 'opacity-50')} />
+          <SortIcon
+            size={12}
+            aria-hidden
+            className={cn(
+              'shrink-0 transition-opacity',
+              direction ? 'opacity-100' : 'opacity-40 group-hover/sort:opacity-70',
+            )}
+          />
         </button>
       ) : (
         children
@@ -91,10 +147,11 @@ interface TdProps extends HTMLAttributes<HTMLTableCellElement> {
 }
 
 export function Td({ children, align = 'left', className, ...props }: TdProps) {
-  const alignClass =
-    align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left';
   return (
-    <td className={cn('px-4 py-3.5 align-middle text-fg', alignClass, className)} {...props}>
+    <td
+      className={cn('px-4 py-3 align-middle text-fg transition-colors', alignClass(align), className)}
+      {...props}
+    >
       {children}
     </td>
   );
@@ -109,8 +166,11 @@ export function Tr({
   return (
     <tr
       className={cn(
-        'transition-colors',
-        interactive && 'cursor-pointer hover:bg-brand-500/[0.045]',
+        'group/row',
+        // Hover lives on the cells so it survives zebra striping and the sticky
+        // header's stacking context.
+        interactive &&
+          'cursor-pointer [&_td]:hover:bg-brand-600/[0.05] dark:[&_td]:hover:bg-accent-400/[0.06]',
         className,
       )}
       {...props}
@@ -134,16 +194,19 @@ interface PaginationProps {
 export function Pagination({ page, pages, total, onChange, unit = 'records', className }: PaginationProps) {
   if (pages <= 1) {
     return (
-      <p className={cn('px-4 py-3 text-xs text-fg-subtle', className)}>
+      <p className={cn('border-t border-line px-4 py-3 text-xs text-fg-subtle nums', className)}>
         {total} {unit}
       </p>
     );
   }
 
-  // Compact window of page numbers around the current page.
-  const windowSize = 5;
+  // Compact window of page numbers centred on the current page.
+  const windowSize = Math.min(5, pages);
   const start = Math.max(1, Math.min(page - Math.floor(windowSize / 2), pages - windowSize + 1));
-  const visible = Array.from({ length: Math.min(windowSize, pages) }, (_, i) => start + i);
+  const visible = Array.from({ length: windowSize }, (_, index) => start + index);
+
+  const stepClass =
+    'grid h-8 w-8 place-items-center rounded-lg text-fg-muted transition-colors hover:bg-surface hover:text-fg disabled:pointer-events-none disabled:opacity-40';
 
   return (
     <nav
@@ -161,9 +224,10 @@ export function Pagination({ page, pages, total, onChange, unit = 'records', cla
           type="button"
           onClick={() => onChange(page - 1)}
           disabled={page <= 1}
-          className="h-8 rounded-lg px-3 text-sm font-medium text-fg-muted transition hover:bg-surface hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="Previous page"
+          className={stepClass}
         >
-          Previous
+          <ChevronLeft size={16} aria-hidden />
         </button>
         {visible.map((entry) => (
           <button
@@ -171,10 +235,11 @@ export function Pagination({ page, pages, total, onChange, unit = 'records', cla
             type="button"
             onClick={() => onChange(entry)}
             aria-current={entry === page ? 'page' : undefined}
+            aria-label={`Page ${entry}`}
             className={cn(
-              'h-8 min-w-8 rounded-lg px-2 text-sm font-medium transition nums',
+              'grid h-8 min-w-8 place-items-center rounded-lg px-2 text-sm font-medium transition-colors nums',
               entry === page
-                ? 'bg-brand-600 text-white shadow-sm'
+                ? 'bg-brand-700 text-white elevation-1'
                 : 'text-fg-muted hover:bg-surface hover:text-fg',
             )}
           >
@@ -185,9 +250,10 @@ export function Pagination({ page, pages, total, onChange, unit = 'records', cla
           type="button"
           onClick={() => onChange(page + 1)}
           disabled={page >= pages}
-          className="h-8 rounded-lg px-3 text-sm font-medium text-fg-muted transition hover:bg-surface hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="Next page"
+          className={stepClass}
         >
-          Next
+          <ChevronRight size={16} aria-hidden />
         </button>
       </div>
     </nav>

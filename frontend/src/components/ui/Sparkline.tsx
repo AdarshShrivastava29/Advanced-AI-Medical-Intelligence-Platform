@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, memo } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -16,7 +16,7 @@ interface SparklineProps {
  * Dependency-free mini trend line for KPI tiles. Recharts is reserved for the
  * full analytics charts; a 40px sparkline does not justify its render cost.
  */
-export function Sparkline({
+export const Sparkline = memo(function Sparkline({
   data,
   color = 'currentColor',
   width = 96,
@@ -68,4 +68,4 @@ export function Sparkline({
       />
     </svg>
   );
-}
+});

@@ -184,8 +184,8 @@ export function GradCamViewer({ gradcam, predictionId }: GradCamViewerProps) {
       </div>
 
       {zoom > 1 && (
-        <span className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
-          <Move size={11} aria-hidden /> Drag to pan
+        <span className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+          <Move size={12} aria-hidden /> Drag to pan
         </span>
       )}
     </div>
@@ -216,7 +216,7 @@ export function GradCamViewer({ gradcam, predictionId }: GradCamViewerProps) {
       <Tooltip content="Reset view">
         <IconButton
           label="Reset view"
-          icon={<RotateCcw size={15} />}
+          icon={<RotateCcw size={16} />}
           size="icon-sm"
           variant="secondary"
           onClick={reset}
@@ -225,7 +225,7 @@ export function GradCamViewer({ gradcam, predictionId }: GradCamViewerProps) {
       <Tooltip content={fullscreen ? 'Exit full screen' : 'Full screen review'}>
         <IconButton
           label={fullscreen ? 'Exit full screen' : 'Full screen review'}
-          icon={fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+          icon={fullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           size="icon-sm"
           variant="secondary"
           onClick={() => setFullscreen((value) => !value)}

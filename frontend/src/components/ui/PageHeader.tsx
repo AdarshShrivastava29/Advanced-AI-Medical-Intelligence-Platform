@@ -32,12 +32,12 @@ export function PageHeader({
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className={cn('mb-7', className)}
+      className={cn('mb-8', className)}
     >
       {breadcrumbs && breadcrumbs.length > 0 && <Breadcrumbs items={breadcrumbs} className="mb-3" />}
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
-          {eyebrow && <p className="medical-label mb-1.5">{eyebrow}</p>}
+          {eyebrow && <p className="medical-label mb-2">{eyebrow}</p>}
           <h1 className="text-display-sm font-bold text-fg sm:text-[2rem]">{title}</h1>
           {description && (
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-fg-muted">{description}</p>

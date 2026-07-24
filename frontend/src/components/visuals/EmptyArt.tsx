@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export type EmptyArtKind = 'scan' | 'records' | 'documents' | 'assistant' | 'analytics' | 'search';
@@ -7,7 +9,7 @@ export type EmptyArtKind = 'scan' | 'records' | 'documents' | 'assistant' | 'ana
  * inherits `currentColor`, so an empty state costs no extra network request and
  * themes automatically.
  */
-export function EmptyArt({ kind, className }: { kind: EmptyArtKind; className?: string }) {
+export const EmptyArt = memo(function EmptyArt({ kind, className }: { kind: EmptyArtKind; className?: string }) {
   return (
     <svg
       viewBox="0 0 160 120"
@@ -86,4 +88,4 @@ export function EmptyArt({ kind, className }: { kind: EmptyArtKind; className?: 
       )}
     </svg>
   );
-}
+});

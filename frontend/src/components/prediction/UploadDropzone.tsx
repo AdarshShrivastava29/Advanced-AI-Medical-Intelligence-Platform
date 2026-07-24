@@ -74,12 +74,12 @@ export function UploadDropzone({
 
           {/* Viewer overlay chrome */}
           <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" aria-hidden />
-          <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-lg bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm">
+          <div className="absolute left-3 top-3 flex items-center gap-2 rounded-lg bg-black/55 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm">
             <CheckCircle2 size={12} className="text-success-500" aria-hidden />
             Study loaded
           </div>
 
-          <div className="absolute right-3 top-3 flex gap-1.5">
+          <div className="absolute right-3 top-3 flex gap-2">
             {onExpand && (
               <button
                 type="button"
@@ -87,7 +87,7 @@ export function UploadDropzone({
                 aria-label="View full screen"
                 className="grid h-8 w-8 place-items-center rounded-lg bg-black/55 text-white/90 backdrop-blur-sm transition hover:bg-black/75"
               >
-                <Maximize2 size={15} aria-hidden />
+                <Maximize2 size={16} aria-hidden />
               </button>
             )}
             {!disabled && (
@@ -97,17 +97,17 @@ export function UploadDropzone({
                 aria-label="Remove image"
                 className="grid h-8 w-8 place-items-center rounded-lg bg-black/55 text-white/90 backdrop-blur-sm transition hover:bg-danger-600"
               >
-                <X size={15} aria-hidden />
+                <X size={16} aria-hidden />
               </button>
             )}
           </div>
         </div>
 
         {file && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface-muted px-3.5 py-2.5">
-            <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface-muted px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-600/10 text-brand-700 dark:bg-accent-400/10 dark:text-accent-300">
-                <FileImage size={15} aria-hidden />
+                <FileImage size={16} aria-hidden />
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-fg">{file.name}</p>
@@ -116,7 +116,7 @@ export function UploadDropzone({
                 </p>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-success-500/10 px-2.5 py-1 text-xs font-medium text-success-600 dark:text-success-500">
+            <span className="inline-flex items-center gap-2 rounded-full bg-success-500/10 px-3 py-1 text-xs font-medium text-success-600 dark:text-success-400">
               <CheckCircle2 size={12} aria-hidden /> Format validated
             </span>
           </div>
@@ -151,7 +151,7 @@ export function UploadDropzone({
         }}
         onClick={() => !disabled && inputRef.current?.click()}
         className={cn(
-          'relative flex cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-all duration-300 ease-premium sm:py-16',
+          'relative flex cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-[transform,box-shadow,border-color,background-color,color,opacity] duration-300 ease-premium sm:py-16',
           dragging
             ? 'border-brand-600 bg-brand-600/[0.06] dark:border-accent-400 dark:bg-accent-400/[0.08]'
             : 'border-line-strong hover:border-brand-500 hover:bg-surface-muted',
@@ -178,7 +178,7 @@ export function UploadDropzone({
           <p className="font-display text-base font-semibold text-fg">
             {dragging ? 'Release to load the study' : 'Drop a chest radiograph here'}
           </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">
+          <p className="mt-2 text-sm leading-relaxed text-fg-muted">
             Or browse your workstation. The image is analysed immediately — classification, Grad-CAM
             localisation and a drafted report.
           </p>
@@ -210,7 +210,7 @@ export function UploadDropzone({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-danger-500/25 bg-danger-500/[0.07] p-3 text-sm text-danger-700 dark:text-danger-500">
+            <div className="mt-3 flex items-start gap-3 rounded-xl border border-danger-500/25 bg-danger-500/[0.07] p-3 text-sm text-danger-700 dark:text-danger-400">
               <TriangleAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
               <span className="flex-1">{error}</span>
               <IconButton

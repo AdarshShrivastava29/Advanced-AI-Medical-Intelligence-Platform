@@ -15,12 +15,12 @@ export function Breadcrumbs({ items, className }: { items: Crumb[]; className?: 
   if (items.length === 0) return null;
   return (
     <nav aria-label="Breadcrumb" className={cn('min-w-0', className)}>
-      <ol className="flex items-center gap-1.5 text-sm text-fg-subtle">
+      <ol className="flex items-center gap-2 text-sm text-fg-subtle">
         <li className="flex items-center">
           <Link
             to="/dashboard"
             aria-label="Dashboard home"
-            className="grid h-6 w-6 place-items-center rounded-md text-fg-subtle transition hover:bg-surface-sunken hover:text-fg"
+            className="grid h-6 w-6 place-items-center rounded-lg text-fg-subtle transition hover:bg-surface-sunken hover:text-fg"
           >
             <Home size={14} aria-hidden />
           </Link>

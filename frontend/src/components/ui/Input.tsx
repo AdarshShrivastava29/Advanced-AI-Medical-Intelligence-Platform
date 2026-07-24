@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 /** Shared control chrome so inputs, selects and textareas stay pixel-identical. */
 const fieldBase =
-  'w-full rounded-xl border border-line bg-surface text-sm text-fg shadow-sm outline-none transition-all duration-200 placeholder:text-fg-subtle ' +
+  'w-full rounded-xl border border-line bg-surface text-sm text-fg shadow-sm outline-none transition-[transform,box-shadow,border-color,background-color,color,opacity] duration-200 placeholder:text-fg-subtle ' +
   'hover:border-line-strong focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 ' +
   'disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-fg-subtle';
 
@@ -32,7 +32,7 @@ interface FieldShellProps {
 /** Label + description + error scaffolding shared by every form control. */
 function FieldShell({ id, label, hint, error, required, children, className }: FieldShellProps) {
   return (
-    <div className={cn('space-y-1.5', className)}>
+    <div className={cn('space-y-2', className)}>
       {label && (
         <label htmlFor={id} className="block text-sm font-medium text-fg">
           {label}
@@ -45,8 +45,8 @@ function FieldShell({ id, label, hint, error, required, children, className }: F
       )}
       {children}
       {error ? (
-        <p id={`${id}-error`} className="flex items-center gap-1.5 text-xs font-medium text-danger-600">
-          <AlertCircle size={13} aria-hidden />
+        <p id={`${id}-error`} className="flex items-center gap-2 text-xs font-medium text-danger-600 dark:text-danger-400">
+          <AlertCircle size={14} aria-hidden />
           {error}
         </p>
       ) : (
@@ -101,7 +101,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
             className={cn(
               fieldBase,
-              'h-11 px-3.5',
+              'h-10 px-4',
               icon && 'pl-10',
               trailing && 'pr-11',
               error && fieldError,
@@ -149,7 +149,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           required={required}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${fieldId}-error` : hint ? `${fieldId}-hint` : undefined}
-          className={cn(fieldBase, 'resize-y px-3.5 py-2.5 leading-relaxed', error && fieldError, className)}
+          className={cn(fieldBase, 'resize-y px-4 py-3 leading-relaxed', error && fieldError, className)}
           {...props}
         />
       </FieldShell>
@@ -187,7 +187,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           aria-describedby={error ? `${fieldId}-error` : hint ? `${fieldId}-hint` : undefined}
           className={cn(
             fieldBase,
-            "h-11 appearance-none bg-[length:1.15em] bg-[right_0.75rem_center] bg-no-repeat px-3.5 pr-10",
+            "h-10 appearance-none bg-[length:1.15em] bg-[right_0.75rem_center] bg-no-repeat px-4 pr-10",
             "bg-[url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%237a8aa2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")]",
             error && fieldError,
             className,

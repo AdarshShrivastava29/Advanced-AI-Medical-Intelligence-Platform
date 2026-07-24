@@ -50,7 +50,7 @@ export function DashboardHero({ greeting, subtitle, metrics, loading = false }: 
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="clinical-hero rounded-panel shadow-panel"
+      className="clinical-hero rounded-panel elevation-4"
     >
       {/* Atmosphere */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
@@ -77,14 +77,14 @@ export function DashboardHero({ greeting, subtitle, metrics, loading = false }: 
             <p className="text-label font-semibold uppercase text-accent-300">
               {ORG_NAME} · {ORG_UNIT}
             </p>
-            <h1 className="mt-2.5 font-display text-display-sm font-bold text-white sm:text-display-md">
+            <h1 className="mt-3 font-display text-display-sm font-bold text-white sm:text-display-md">
               {greeting}
             </h1>
-            <p className="mt-2.5 text-sm leading-relaxed text-white/75">{subtitle}</p>
+            <p className="mt-3 text-sm leading-relaxed text-white/75">{subtitle}</p>
             <p className="mt-1 text-xs text-white/75">{today}</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-3">
             <Link to="/predict">
               <Button size="lg" className="bg-white text-brand-800 shadow-md hover:bg-white/90 active:bg-white/80">
                 <ScanLine size={18} aria-hidden /> New prediction
@@ -102,7 +102,7 @@ export function DashboardHero({ greeting, subtitle, metrics, loading = false }: 
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-white/12 pt-6 sm:gap-x-10 lg:flex lg:flex-wrap lg:items-end">
+        <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-white/12 pt-6 sm:gap-x-10 lg:flex lg:flex-wrap lg:items-end">
           {metrics.map((metric) => (
             <div key={metric.label} className="min-w-0 lg:min-w-[9rem]">
               <p className="truncate text-[11px] font-medium uppercase tracking-wider text-white/75">
@@ -110,7 +110,7 @@ export function DashboardHero({ greeting, subtitle, metrics, loading = false }: 
               </p>
               <p
                 className={cn(
-                  'mt-1.5 font-display text-2xl font-bold leading-none sm:text-[1.75rem]',
+                  'mt-2 font-display text-2xl font-bold leading-none sm:text-[1.75rem]',
                   toneText[metric.tone ?? 'default'],
                 )}
               >
@@ -131,9 +131,9 @@ export function DashboardHero({ greeting, subtitle, metrics, loading = false }: 
 
           <Link
             to="/analytics"
-            className="ml-auto hidden items-center gap-1.5 self-end text-sm font-medium text-accent-300 transition hover:text-white lg:inline-flex"
+            className="ml-auto hidden items-center gap-2 self-end text-sm font-medium text-accent-300 transition hover:text-white lg:inline-flex"
           >
-            Full analytics <ArrowUpRight size={15} aria-hidden />
+            Full analytics <ArrowUpRight size={16} aria-hidden />
           </Link>
         </div>
       </div>

@@ -58,12 +58,12 @@ export function ProfilePage() {
       />
 
       {isLoading || !user ? (
-        <div className="grid gap-5 xl:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-3">
           <Skeleton className="h-80 rounded-2xl xl:col-span-2" />
           <Skeleton className="h-80 rounded-2xl" />
         </div>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-3">
           {/* ---------------- Identity ---------------- */}
           <Card padding="none" className="overflow-hidden xl:col-span-2">
             <div className="clinical-hero px-6 pb-14 pt-8 sm:px-8">
@@ -87,7 +87,7 @@ export function ProfilePage() {
                 <Avatar name={user.full_name} size="lg" online className="ring-4 ring-surface" />
                 <div className="flex flex-wrap items-center gap-2 pb-1">
                   <Badge tone={roleTone[user.role]} size="sm">
-                    <ShieldCheck size={11} aria-hidden /> {ROLE_LABEL[user.role] ?? user.role}
+                    <ShieldCheck size={12} aria-hidden /> {ROLE_LABEL[user.role] ?? user.role}
                   </Badge>
                   <Badge tone={user.is_active ? 'green' : 'red'} size="sm" dot>
                     {user.is_active ? 'Active' : 'Disabled'}
@@ -95,7 +95,7 @@ export function ProfilePage() {
                 </div>
               </div>
 
-              <dl className="mt-6 grid gap-5 border-t border-line py-6 sm:grid-cols-2">
+              <dl className="mt-6 grid gap-6 border-t border-line py-6 sm:grid-cols-2">
                 <Detail Icon={Mail} label="Work email" value={user.email} />
                 <Detail Icon={Shield} label="Access level" value={ROLE_LABEL[user.role] ?? user.role} />
                 <Detail Icon={CalendarClock} label="Member since" value={formatDate(user.created_at)} />
@@ -115,7 +115,7 @@ export function ProfilePage() {
                 variant="danger"
                 size="sm"
                 onClick={handleLogout}
-                leadingIcon={<LogOut size={15} />}
+                leadingIcon={<LogOut size={16} />}
               >
                 Sign out
               </Button>
@@ -123,13 +123,13 @@ export function ProfilePage() {
           </Card>
 
           {/* ---------------- Activity ---------------- */}
-          <div className="space-y-5">
+          <div className="space-y-6">
             <Card>
               <CardHeader
                 eyebrow="Lifetime activity"
                 title="Your contribution"
                 subtitle="All studies analysed under this account"
-                icon={<Activity size={19} />}
+                icon={<Activity size={18} />}
                 divided
               />
               <div className="space-y-3">
@@ -168,14 +168,14 @@ export function ProfilePage() {
               <CardHeader
                 eyebrow="Security"
                 title="Session & access"
-                icon={<Shield size={19} />}
+                icon={<Shield size={18} />}
                 divided
               />
               <ul className="space-y-3 text-xs leading-relaxed text-fg-muted">
                 {SECURITY_NOTES.map(([title, body]) => (
-                  <li key={title} className="flex gap-2.5">
+                  <li key={title} className="flex gap-3">
                     <span
-                      className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-700 dark:bg-accent-400"
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-700 dark:bg-accent-400"
                       aria-hidden
                     />
                     <span>
@@ -199,7 +199,7 @@ function Detail({ Icon, label, value }: { Icon: LucideIcon; label: string; value
         className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-sunken text-fg-subtle"
         aria-hidden
       >
-        <Icon size={15} />
+        <Icon size={16} />
       </span>
       <div className="min-w-0">
         <dt className="medical-label">{label}</dt>
@@ -211,8 +211,8 @@ function Detail({ Icon, label, value }: { Icon: LucideIcon; label: string; value
 
 const metricTone = {
   brand: 'bg-brand-600/10 text-brand-700 dark:bg-accent-400/10 dark:text-accent-300',
-  red: 'bg-danger-500/10 text-danger-600 dark:text-danger-500',
-  green: 'bg-success-500/10 text-success-600 dark:text-success-500',
+  red: 'bg-danger-500/10 text-danger-600 dark:text-danger-400',
+  green: 'bg-success-500/10 text-success-600 dark:text-success-400',
 } as const;
 
 function Metric({
@@ -228,12 +228,12 @@ function Metric({
 }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl bg-surface-muted px-4 py-3">
-      <span className="flex min-w-0 items-center gap-2.5">
+      <span className="flex min-w-0 items-center gap-3">
         <span
           className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-lg', metricTone[tone])}
           aria-hidden
         >
-          <Icon size={15} />
+          <Icon size={16} />
         </span>
         <span className="truncate text-sm text-fg-muted">{label}</span>
       </span>

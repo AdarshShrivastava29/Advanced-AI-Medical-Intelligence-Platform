@@ -86,13 +86,13 @@ export function PredictionPage() {
         meta={
           <>
             <Badge tone="brand" size="sm">
-              <Brain size={11} aria-hidden /> {model.arch ?? 'Model idle'}
+              <Brain size={12} aria-hidden /> {model.arch ?? 'Model idle'}
             </Badge>
             <Badge tone={status.state === 'operational' ? 'green' : 'amber'} size="sm" dot>
               {status.label}
             </Badge>
             <Badge tone="slate" size="sm">
-              <ShieldCheck size={11} aria-hidden /> Decision-support only
+              <ShieldCheck size={12} aria-hidden /> Decision-support only
             </Badge>
           </>
         }
@@ -111,7 +111,7 @@ export function PredictionPage() {
             key="upload"
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="grid gap-5 xl:grid-cols-5"
+            className="grid gap-6 xl:grid-cols-5"
           >
             {/* ---- Upload panel ---- */}
             <Card className="xl:col-span-3">
@@ -119,7 +119,7 @@ export function PredictionPage() {
                 eyebrow="Step 1"
                 title="Load the radiograph"
                 subtitle="PNG or JPEG · up to 10 MB"
-                icon={<ScanLine size={19} />}
+                icon={<ScanLine size={18} />}
                 divided
               />
 
@@ -140,14 +140,14 @@ export function PredictionPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="pt-5">
+                    <div className="pt-6">
                       <AnalysisProgress uploadProgress={uploadProgress} />
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
                 <p className="text-xs leading-relaxed text-fg-subtle">
                   Images are processed for analysis only and are never used to retrain the model.
                 </p>
@@ -156,7 +156,7 @@ export function PredictionPage() {
                   onClick={analyze}
                   disabled={!file}
                   loading={isPending}
-                  leadingIcon={!isPending && <Sparkles size={17} />}
+                  leadingIcon={!isPending && <Sparkles size={18} />}
                 >
                   {isPending ? 'Analysing…' : 'Run analysis'}
                 </Button>
@@ -164,18 +164,18 @@ export function PredictionPage() {
             </Card>
 
             {/* ---- Side rail ---- */}
-            <div className="space-y-5 xl:col-span-2">
+            <div className="space-y-6 xl:col-span-2">
               <Card>
                 <CardHeader
                   eyebrow="How it works"
                   title="Analysis pipeline"
-                  icon={<Brain size={19} />}
+                  icon={<Brain size={18} />}
                   divided
                 />
-                <ol className="relative space-y-5">
+                <ol className="relative space-y-6">
                   <span className="absolute bottom-3 left-[0.9375rem] top-3 w-px bg-line" aria-hidden />
                   {PIPELINE.map((entry) => (
-                    <li key={entry.step} className="relative flex gap-3.5">
+                    <li key={entry.step} className="relative flex gap-4">
                       <span className="z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-600/10 text-[11px] font-bold text-brand-700 ring-4 ring-surface dark:bg-accent-400/10 dark:text-accent-300">
                         {entry.step}
                       </span>
@@ -187,7 +187,7 @@ export function PredictionPage() {
                   ))}
                 </ol>
 
-                <Alert tone="clinical" className="mt-5">
+                <Alert tone="clinical" className="mt-6">
                   Outputs are advisory. A qualified clinician must review every study before it
                   informs care.
                 </Alert>
@@ -197,7 +197,7 @@ export function PredictionPage() {
                 <CardHeader
                   eyebrow="Worklist"
                   title="Recent studies"
-                  icon={<Clock size={19} />}
+                  icon={<Clock size={18} />}
                   action={
                     <Link to="/history">
                       <Button variant="ghost" size="sm">
@@ -219,9 +219,9 @@ export function PredictionPage() {
                       <li key={item.id}>
                         <Link
                           to={`/history/${item.id}`}
-                          className="flex items-center justify-between gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-surface-sunken"
+                          className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-surface-sunken"
                         >
-                          <div className="flex min-w-0 items-center gap-2.5">
+                          <div className="flex min-w-0 items-center gap-3">
                             <ClassBadge label={item.predicted_class} size="sm" />
                             <span className="text-sm font-medium text-fg nums">
                               {percent(item.confidence, 0)}

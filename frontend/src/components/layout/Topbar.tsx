@@ -97,11 +97,11 @@ export function Topbar({ onOpenDrawer, onOpenSearch, onSignOut }: TopbarProps) {
         <button
           type="button"
           onClick={onOpenSearch}
-          className="ml-auto hidden h-9 w-64 items-center gap-2.5 rounded-xl border border-line bg-surface px-3 text-sm text-fg-subtle shadow-sm transition hover:border-line-strong hover:text-fg-muted md:flex xl:w-80"
+          className="ml-auto hidden h-9 w-64 items-center gap-3 rounded-xl border border-line bg-surface px-3 text-sm text-fg-subtle shadow-sm transition hover:border-line-strong hover:text-fg-muted md:flex xl:w-80"
         >
-          <Search size={15} aria-hidden />
+          <Search size={16} aria-hidden />
           <span className="flex-1 text-left">Search…</span>
-          <kbd className="rounded border border-line px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
+          <kbd className="rounded border border-line px-2 py-0.5 text-[10px] font-medium">⌘K</kbd>
         </button>
         <button
           type="button"
@@ -113,7 +113,7 @@ export function Topbar({ onOpenDrawer, onOpenSearch, onSignOut }: TopbarProps) {
         </button>
 
         {/* Platform telemetry */}
-        <div className="hidden items-center gap-1.5 xl:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           <Tooltip
             content={
               model.arch
@@ -153,7 +153,7 @@ export function Topbar({ onOpenDrawer, onOpenSearch, onSignOut }: TopbarProps) {
             aria-label="Start a new prediction"
             className="hidden sm:inline-flex"
           >
-            <ScanLine size={17} aria-hidden />
+            <ScanLine size={18} aria-hidden />
           </Button>
         </Tooltip>
 
@@ -179,7 +179,7 @@ export function Topbar({ onOpenDrawer, onOpenSearch, onSignOut }: TopbarProps) {
             <>
               <MenuLabel>System notifications</MenuLabel>
               {alerts.length === 0 ? (
-                <p className="px-2.5 py-6 text-center text-sm text-fg-muted">
+                <p className="px-3 py-6 text-center text-sm text-fg-muted">
                   Nothing needs your attention.
                 </p>
               ) : (
@@ -192,7 +192,7 @@ export function Topbar({ onOpenDrawer, onOpenSearch, onSignOut }: TopbarProps) {
                         close();
                         if (alert.to) navigate(alert.to);
                       }}
-                      className="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2.5 text-left transition-colors hover:bg-surface-sunken"
+                      className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-surface-sunken"
                     >
                       <span
                         className={cn(
@@ -215,14 +215,14 @@ export function Topbar({ onOpenDrawer, onOpenSearch, onSignOut }: TopbarProps) {
                 </div>
               )}
               <MenuSeparator />
-              <MenuItem icon={<Activity size={15} />} onClick={() => { close(); navigate('/settings'); }}>
+              <MenuItem icon={<Activity size={16} />} onClick={() => { close(); navigate('/settings'); }}>
                 View system diagnostics
               </MenuItem>
             </>
           )}
         </Menu>
 
-        <ThemeToggle />
+        <ThemeToggle className="hidden sm:grid" />
 
         {/* User menu */}
         {user && (
@@ -249,31 +249,31 @@ export function Topbar({ onOpenDrawer, onOpenSearch, onSignOut }: TopbarProps) {
           >
             {(close) => (
               <>
-                <div className="flex items-center gap-3 px-2.5 py-2.5">
+                <div className="flex items-center gap-3 px-3 py-3">
                   <Avatar name={user.full_name} size="md" online />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-fg">{user.full_name}</p>
                     <p className="truncate text-xs text-fg-subtle">{user.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 px-2.5 pb-2.5">
+                <div className="flex items-center gap-2 px-3 pb-3">
                   <Badge tone={user.role === 'admin' ? 'violet' : 'brand'} size="sm">
                     {ROLE_LABEL[user.role] ?? user.role}
                   </Badge>
                   <Badge tone="slate" size="sm">
-                    <Building2 size={11} aria-hidden />
+                    <Building2 size={12} aria-hidden />
                     {ORG_NAME}
                   </Badge>
                 </div>
                 <MenuSeparator />
-                <MenuItem icon={<UserIcon size={15} />} onClick={() => { close(); navigate('/profile'); }}>
+                <MenuItem icon={<UserIcon size={16} />} onClick={() => { close(); navigate('/profile'); }}>
                   Profile
                 </MenuItem>
-                <MenuItem icon={<Settings size={15} />} onClick={() => { close(); navigate('/settings'); }}>
+                <MenuItem icon={<Settings size={16} />} onClick={() => { close(); navigate('/settings'); }}>
                   Settings
                 </MenuItem>
                 <MenuSeparator />
-                <MenuItem tone="danger" icon={<LogOut size={15} />} onClick={() => { close(); onSignOut(); }}>
+                <MenuItem tone="danger" icon={<LogOut size={16} />} onClick={() => { close(); onSignOut(); }}>
                   Sign out
                 </MenuItem>
               </>

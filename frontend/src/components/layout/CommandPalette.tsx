@@ -91,7 +91,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             onKeyDown={onKeyDown}
-            className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface shadow-elevated"
+            className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface elevation-3"
           >
             <div className="flex items-center gap-3 border-b border-line px-4">
               <Search size={18} className="shrink-0 text-fg-subtle" aria-hidden />
@@ -103,7 +103,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                 aria-label="Search"
                 className="h-14 w-full bg-transparent text-sm text-fg outline-none placeholder:text-fg-subtle"
               />
-              <kbd className="hidden shrink-0 rounded-md border border-line px-1.5 py-0.5 text-[10px] font-medium text-fg-subtle sm:block">
+              <kbd className="hidden shrink-0 rounded-lg border border-line px-2 py-0.5 text-[10px] font-medium text-fg-subtle sm:block">
                 ESC
               </kbd>
             </div>
@@ -124,7 +124,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                         onMouseEnter={() => setActiveIndex(index)}
                         onClick={() => go(item.to)}
                         className={cn(
-                          'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors',
+                          'flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors',
                           index === activeIndex ? 'bg-brand-500/10' : 'hover:bg-surface-sunken',
                         )}
                       >
@@ -136,7 +136,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                               : 'bg-surface-sunken text-fg-subtle',
                           )}
                         >
-                          <item.Icon size={17} aria-hidden />
+                          <item.Icon size={18} aria-hidden />
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-medium text-fg">{item.label}</span>
@@ -154,7 +154,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
               )}
             </div>
 
-            <div className="flex items-center gap-4 border-t border-line bg-surface-muted px-4 py-2.5 text-[11px] text-fg-subtle">
+            <div className="flex items-center gap-4 border-t border-line bg-surface-muted px-4 py-3 text-[11px] text-fg-subtle">
               <span>↑↓ to navigate</span>
               <span>↵ to open</span>
               <span className="ml-auto">Ctrl / ⌘ + K</span>

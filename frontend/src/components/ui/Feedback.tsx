@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 
 /** Inline spinner. */
 export function Spinner({ className, size = 20 }: { className?: string; size?: number }) {
-  return <Loader2 className={cn('animate-spin text-brand-600', className)} size={size} aria-hidden />;
+  return <Loader2 className={cn('animate-spin text-brand-700 dark:text-accent-400', className)} size={size} aria-hidden />;
 }
 
 /**
@@ -66,7 +66,7 @@ export function Skeleton({ className }: { className?: string }) {
 /** Multi-line text placeholder with a naturally ragged last line. */
 export function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
   return (
-    <div className={cn('space-y-2.5', className)} aria-hidden>
+    <div className={cn('space-y-3', className)} aria-hidden>
       {Array.from({ length: lines }).map((_, index) => (
         <Skeleton key={index} className={cn('h-3.5', index === lines - 1 ? 'w-2/3' : 'w-full')} />
       ))}
@@ -77,7 +77,7 @@ export function SkeletonText({ lines = 3, className }: { lines?: number; classNa
 /** Card-shaped placeholder matching the standard surface geometry. */
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('surface-card p-5 sm:p-6', className)} aria-hidden>
+    <div className={cn('surface-card p-6 sm:p-6', className)} aria-hidden>
       <div className="flex items-center gap-3">
         <Skeleton className="h-11 w-11 rounded-xl" />
         <div className="flex-1 space-y-2">
@@ -127,7 +127,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={cn('flex flex-col items-center justify-center gap-5 px-6 py-14 text-center', className)}
+      className={cn('flex flex-col items-center justify-center gap-6 px-6 py-14 text-center', className)}
     >
       {icon ? (
         <span className="grid h-16 w-16 place-items-center rounded-2xl bg-surface-sunken text-fg-subtle ring-1 ring-inset ring-line">
@@ -138,7 +138,7 @@ export function EmptyState({
       )}
       <div className="max-w-sm">
         <p className="font-display text-base font-semibold text-fg">{title}</p>
-        {description && <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">{description}</p>}
+        {description && <p className="mt-2 text-sm leading-relaxed text-fg-muted">{description}</p>}
       </div>
       {action}
       {hint && <p className="text-xs text-fg-subtle">{hint}</p>}
@@ -167,15 +167,15 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <div
-      className={cn('flex flex-col items-center justify-center gap-5 px-6 py-14 text-center', className)}
+      className={cn('flex flex-col items-center justify-center gap-6 px-6 py-14 text-center', className)}
       role="alert"
     >
-      <span className="relative grid h-16 w-16 place-items-center rounded-2xl bg-danger-500/10 text-danger-600 ring-1 ring-inset ring-danger-500/20 dark:text-danger-500">
+      <span className="relative grid h-16 w-16 place-items-center rounded-2xl bg-danger-500/10 text-danger-600 ring-1 ring-inset ring-danger-500/20 dark:text-danger-400">
         <TriangleAlert size={28} aria-hidden />
       </span>
       <div className="max-w-md">
         <p className="font-display text-base font-semibold text-fg">{title}</p>
-        {description && <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">{description}</p>}
+        {description && <p className="mt-2 text-sm leading-relaxed text-fg-muted">{description}</p>}
         {detail && (
           <p className="mx-auto mt-3 max-w-sm truncate rounded-lg bg-surface-sunken px-3 py-2 font-mono text-[11px] text-fg-subtle">
             {detail}
@@ -185,16 +185,16 @@ export function ErrorState({
       <div className="flex flex-wrap items-center justify-center gap-2">
         {action ??
           (onRetry && (
-            <Button variant="secondary" size="sm" onClick={onRetry} leadingIcon={<RefreshCw size={15} />}>
+            <Button variant="secondary" size="sm" onClick={onRetry} leadingIcon={<RefreshCw size={16} />}>
               Try again
             </Button>
           ))}
         {supportHref && (
           <a
             href={supportHref}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-fg-muted transition hover:bg-surface-sunken hover:text-fg"
+            className="inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium text-fg-muted transition hover:bg-surface-sunken hover:text-fg"
           >
-            <LifeBuoy size={15} aria-hidden /> Contact support
+            <LifeBuoy size={16} aria-hidden /> Contact support
           </a>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { memo } from 'react';
 import { ChevronRight, ShieldAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -10,7 +11,7 @@ import type { PredictionListItem } from '@/types/api';
  * Vertical case timeline for recent studies. Reads like a worklist entry:
  * finding, confidence, model and elapsed time, with OOD cases called out.
  */
-export function ActivityTimeline({ items }: { items: PredictionListItem[] }) {
+export const ActivityTimeline = memo(function ActivityTimeline({ items }: { items: PredictionListItem[] }) {
   return (
     <ol className="relative space-y-1">
       {/* Spine */}
@@ -27,15 +28,15 @@ export function ActivityTimeline({ items }: { items: PredictionListItem[] }) {
           >
             <Link
               to={`/history/${item.id}`}
-              className="group relative flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-surface-sunken"
+              className="group relative flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-surface-sunken"
             >
               {/* Node */}
               <span
                 className={cn(
                   'relative z-10 mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full ring-4 ring-surface transition-transform duration-300 group-hover:scale-110',
                   isPneumonia
-                    ? 'bg-danger-500/12 text-danger-600 dark:text-danger-500'
-                    : 'bg-success-500/12 text-success-600 dark:text-success-500',
+                    ? 'bg-danger-500/12 text-danger-600 dark:text-danger-400'
+                    : 'bg-success-500/12 text-success-600 dark:text-success-400',
                 )}
                 aria-hidden
               >
@@ -50,7 +51,7 @@ export function ActivityTimeline({ items }: { items: PredictionListItem[] }) {
                   </span>
                   {item.ood_flag && (
                     <Badge tone="amber" size="sm">
-                      <ShieldAlert size={11} aria-hidden /> OOD
+                      <ShieldAlert size={12} aria-hidden /> OOD
                     </Badge>
                   )}
                 </div>
@@ -62,7 +63,7 @@ export function ActivityTimeline({ items }: { items: PredictionListItem[] }) {
               <ChevronRight
                 size={16}
                 aria-hidden
-                className="mt-2 shrink-0 text-fg-subtle opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
+                className="mt-2 shrink-0 text-fg-subtle opacity-0 transition-[transform,box-shadow,border-color,background-color,color,opacity] duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
               />
             </Link>
           </motion.li>
@@ -70,4 +71,4 @@ export function ActivityTimeline({ items }: { items: PredictionListItem[] }) {
       })}
     </ol>
   );
-}
+});

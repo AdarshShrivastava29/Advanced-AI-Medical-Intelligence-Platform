@@ -121,7 +121,7 @@ export function HistoryPage() {
       />
 
       {/* ---------------- Filter bar ---------------- */}
-      <Card className="mb-5" padding="sm">
+      <Card className="mb-6" padding="sm">
         <div className="flex flex-wrap items-end gap-3">
           <Input
             type="search"
@@ -129,12 +129,12 @@ export function HistoryPage() {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by study ID or model…"
             aria-label="Search studies"
-            icon={<Search size={15} />}
+            icon={<Search size={16} />}
             containerClassName="min-w-0 flex-1 sm:max-w-xs"
           />
 
           <div>
-            <p className="medical-label mb-1.5">Finding</p>
+            <p className="medical-label mb-2">Finding</p>
             <Segmented
               options={CLASS_FILTERS.map((option) => ({ value: option.value, label: option.label }))}
               value={classFilter}
@@ -145,7 +145,7 @@ export function HistoryPage() {
           </div>
 
           <div>
-            <p className="medical-label mb-1.5">Confidence</p>
+            <p className="medical-label mb-2">Confidence</p>
             <Segmented
               options={CONFIDENCE_FILTERS.map((option) => ({
                 value: option.value,
@@ -164,8 +164,8 @@ export function HistoryPage() {
             aria-pressed={oodOnly}
             className={
               oodOnly
-                ? 'inline-flex h-9 items-center gap-1.5 rounded-xl border border-warning-500/40 bg-warning-500/10 px-3 text-sm font-medium text-warning-700 transition dark:text-warning-500'
-                : 'inline-flex h-9 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-sm font-medium text-fg-muted transition hover:border-line-strong hover:text-fg'
+                ? 'inline-flex h-9 items-center gap-2 rounded-xl border border-warning-500/40 bg-warning-500/10 px-3 text-sm font-medium text-warning-700 transition dark:text-warning-400'
+                : 'inline-flex h-9 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-sm font-medium text-fg-muted transition hover:border-line-strong hover:text-fg'
             }
           >
             <ShieldAlert size={14} aria-hidden /> Needs review
@@ -194,7 +194,19 @@ export function HistoryPage() {
         </Card>
       ) : data && data.items.length > 0 ? (
         <>
-          <TableWrapper className="hidden lg:block">
+          <TableWrapper
+            className="hidden lg:block"
+            maxHeight="calc(100vh - 24rem)"
+            footer={
+              <Pagination
+                page={data.page}
+                pages={Math.max(data.pages, 1)}
+                total={data.total}
+                unit="studies"
+                onChange={setPage}
+              />
+            }
+          >
             <Table>
               <THead>
                 <Tr>
@@ -221,7 +233,7 @@ export function HistoryPage() {
                   </Th>
                 </Tr>
               </THead>
-              <TBody>
+              <TBody striped>
                 {rows.map((item) => (
                   <HistoryRow key={item.id} item={item} />
                 ))}
@@ -240,14 +252,6 @@ export function HistoryPage() {
                 }
               />
             )}
-
-            <Pagination
-              page={data.page}
-              pages={Math.max(data.pages, 1)}
-              total={data.total}
-              unit="studies"
-              onChange={setPage}
-            />
           </TableWrapper>
 
           {/* Mobile / tablet card list */}
@@ -310,11 +314,11 @@ function HistoryRow({ item }: { item: PredictionListItem }) {
   return (
     <Tr interactive>
       <Td>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <ClassBadge label={item.predicted_class} size="sm" />
           {item.ood_flag && (
             <Badge tone="amber" size="sm">
-              <ShieldAlert size={10} aria-hidden /> OOD
+              <ShieldAlert size={12} aria-hidden /> OOD
             </Badge>
           )}
         </div>
@@ -368,7 +372,7 @@ function HistoryCard({ item, delay }: { item: PredictionListItem; delay: number 
               <ClassBadge label={item.predicted_class} size="sm" />
               {item.ood_flag && (
                 <Badge tone="amber" size="sm">
-                  <ShieldAlert size={10} aria-hidden /> OOD
+                  <ShieldAlert size={12} aria-hidden /> OOD
                 </Badge>
               )}
             </div>
@@ -384,10 +388,10 @@ function HistoryCard({ item, delay }: { item: PredictionListItem; delay: number 
             />
           </div>
 
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-2.5">
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
             <span className="truncate text-xs text-fg-subtle">{item.model_arch}</span>
             <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 dark:text-accent-300">
-              Open <ChevronRight size={13} aria-hidden />
+              Open <ChevronRight size={14} aria-hidden />
             </span>
           </div>
         </Card>

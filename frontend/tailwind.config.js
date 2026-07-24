@@ -107,9 +107,12 @@ export default {
         },
 
         // ---- Status semantics -------------------------------------------
+        // The 400 step exists for dark mode only: the 500/600 steps drop to
+        // ~3:1 on the #1E293B card and fail AA for status text.
         success: {
           50: '#ecfdf3',
           100: '#d1fadf',
+          400: '#47cd89',
           500: '#16a34a',
           600: '#15803d',
           700: '#166534',
@@ -117,6 +120,7 @@ export default {
         warning: {
           50: '#fffaeb',
           100: '#fef0c7',
+          400: '#fdb022',
           500: '#d97706',
           600: '#b45309',
           700: '#92400e',
@@ -124,6 +128,7 @@ export default {
         danger: {
           50: '#fef3f2',
           100: '#fee4e2',
+          400: '#f97066',
           500: '#d92d20',
           600: '#b42318',
           700: '#912018',
@@ -179,7 +184,15 @@ export default {
       },
 
       transitionTimingFunction: {
+        // `DEFAULT` makes every bare `transition` share the product's easing, so
+        // hovers across the app decelerate identically instead of drifting
+        // between Tailwind's default ease and the ad-hoc curves in components.
+        DEFAULT: 'cubic-bezier(0.22, 1, 0.36, 1)',
         premium: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+
+      transitionDuration: {
+        DEFAULT: '200ms',
       },
 
       keyframes: {

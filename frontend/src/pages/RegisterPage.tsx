@@ -89,7 +89,7 @@ export function RegisterPage() {
           const done = completed[index];
           const active = index === activeStep;
           return (
-            <li key={step} className="flex flex-1 flex-col gap-1.5">
+            <li key={step} className="flex flex-1 flex-col gap-2">
               <span
                 className={cn(
                   'h-1 rounded-full transition-colors duration-300',
@@ -141,10 +141,10 @@ export function RegisterPage() {
         </div>
 
         <div>
-          <label className="flex cursor-pointer items-start gap-2.5 rounded-xl bg-surface-sunken px-3 py-3 text-[12px] leading-relaxed text-fg-muted">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-surface-sunken px-3 py-3 text-[12px] leading-relaxed text-fg-muted">
             <input
               type="checkbox"
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong bg-surface accent-brand-700"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong bg-surface accent-brand-700 dark:accent-accent-400"
               aria-invalid={Boolean(errors.terms)}
               {...register('terms')}
             />
@@ -154,7 +154,7 @@ export function RegisterPage() {
             </span>
           </label>
           {errors.terms && (
-            <p className="mt-1.5 text-xs font-medium text-danger-600">{errors.terms.message}</p>
+            <p className="mt-2 text-xs font-medium text-danger-600 dark:text-danger-400">{errors.terms.message}</p>
           )}
         </div>
 
@@ -163,7 +163,7 @@ export function RegisterPage() {
           size="lg"
           block
           loading={busy}
-          trailingIcon={!busy && <ArrowRight size={17} />}
+          trailingIcon={!busy && <ArrowRight size={18} />}
         >
           {busy ? 'Creating your account…' : 'Create account'}
         </Button>

@@ -63,14 +63,14 @@ export function SettingsPage() {
         }
       />
 
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         {/* ---------------- Appearance ---------------- */}
         <Card>
           <CardHeader
             eyebrow="Appearance"
             title="Display theme"
             subtitle="Applies to this device only"
-            icon={<Palette size={19} />}
+            icon={<Palette size={18} />}
             divided
           />
 
@@ -84,7 +84,7 @@ export function SettingsPage() {
                   onClick={() => setTheme(option.value)}
                   aria-pressed={active}
                   className={cn(
-                    'flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all duration-200 ease-premium',
+                    'flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-[transform,box-shadow,border-color,background-color,color,opacity] duration-200 ease-premium',
                     active
                       ? 'border-brand-600 bg-brand-600/[0.06] ring-1 ring-brand-600/20 dark:border-accent-400 dark:bg-accent-400/[0.08] dark:ring-accent-400/25'
                       : 'border-line hover:border-line-strong hover:bg-surface-muted',
@@ -99,7 +99,7 @@ export function SettingsPage() {
                     )}
                     aria-hidden
                   >
-                    <option.Icon size={17} />
+                    <option.Icon size={18} />
                   </span>
                   <span>
                     <span className="block text-sm font-semibold text-fg">{option.label}</span>
@@ -110,7 +110,7 @@ export function SettingsPage() {
             })}
           </div>
 
-          <div className="mt-5 border-t border-line pt-5">
+          <div className="mt-6 border-t border-line pt-6">
             <Switch
               checked={sidebarCollapsed}
               onChange={setSidebarCollapsed}
@@ -126,7 +126,7 @@ export function SettingsPage() {
             eyebrow="Deployment"
             title="This workspace"
             subtitle="Tenant and release information"
-            icon={<Building2 size={19} />}
+            icon={<Building2 size={18} />}
             divided
           />
           <dl className="space-y-2">
@@ -143,7 +143,7 @@ export function SettingsPage() {
             eyebrow="AI stack"
             title="Inference & retrieval"
             subtitle="Reported by the backend"
-            icon={<Brain size={19} />}
+            icon={<Brain size={18} />}
             divided
           />
           <dl className="space-y-2">
@@ -174,27 +174,27 @@ export function SettingsPage() {
             eyebrow="Diagnostics"
             title="Service health"
             subtitle="Live readiness probe, refreshed every 20 seconds"
-            icon={<Server size={19} />}
+            icon={<Server size={18} />}
             divided
           />
           {readiness.isLoading ? (
             <Skeleton className="h-32 rounded-xl" />
           ) : (
-            <ul className="space-y-1.5">
+            <ul className="space-y-2">
               {Object.entries(checks).map(([component, healthy]) => (
                 <li
                   key={component}
-                  className="flex items-center justify-between gap-3 rounded-lg bg-surface-muted px-3 py-2.5 text-sm"
+                  className="flex items-center justify-between gap-3 rounded-lg bg-surface-muted px-3 py-3 text-sm"
                 >
                   <span className="truncate capitalize text-fg-muted">
                     {component.replace(/_/g, ' ')}
                   </span>
                   <span
                     className={cn(
-                      'flex shrink-0 items-center gap-1.5 text-xs font-medium',
+                      'flex shrink-0 items-center gap-2 text-xs font-medium',
                       healthy
-                        ? 'text-success-600 dark:text-success-500'
-                        : 'text-danger-600 dark:text-danger-500',
+                        ? 'text-success-600 dark:text-success-400'
+                        : 'text-danger-600 dark:text-danger-400',
                     )}
                   >
                     {healthy ? (
@@ -207,7 +207,7 @@ export function SettingsPage() {
                 </li>
               ))}
               {Object.keys(checks).length === 0 && (
-                <li className="rounded-lg bg-surface-muted px-3 py-2.5 text-sm text-fg-muted">
+                <li className="rounded-lg bg-surface-muted px-3 py-3 text-sm text-fg-muted">
                   No component checks were reported.
                 </li>
               )}
@@ -220,13 +220,13 @@ export function SettingsPage() {
           <CardHeader
             eyebrow="Governance"
             title="Clinical safety & compliance"
-            icon={<ShieldCheck size={19} />}
+            icon={<ShieldCheck size={18} />}
             divided
           />
           <div className="grid gap-4 sm:grid-cols-3">
             {GOVERNANCE.map(([title, body]) => (
               <div key={title} className="rounded-xl bg-surface-muted p-4">
-                <p className="medical-label mb-1.5">{title}</p>
+                <p className="medical-label mb-2">{title}</p>
                 <p className="text-xs leading-relaxed text-fg-muted">{body}</p>
               </div>
             ))}
@@ -240,7 +240,7 @@ export function SettingsPage() {
 
 function Row({ label, value, Icon }: { label: string; value: string; Icon: LucideIcon }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-muted px-3 py-2.5 text-sm">
+    <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-muted px-3 py-3 text-sm">
       <dt className="flex min-w-0 items-center gap-2 text-fg-muted">
         <Icon size={14} className="shrink-0 text-fg-subtle" aria-hidden />
         <span className="truncate">{label}</span>

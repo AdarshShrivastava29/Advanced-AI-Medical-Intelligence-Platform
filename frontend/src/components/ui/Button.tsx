@@ -33,9 +33,14 @@ const variants: Record<Variant, string> = {
     'bg-danger-600 text-white shadow-sm shadow-danger-700/25 hover:bg-danger-700 active:bg-danger-700 disabled:bg-danger-600/55',
 };
 
+/**
+ * Control heights: 32 / 36 / 40 / 48. Every interactive control in the product
+ * (inputs, selects, segmented, tabs, search) resolves to one of these, so
+ * anything placed on the same row lines up without ad-hoc offsets.
+ */
 const sizes: Record<Size, string> = {
-  xs: 'h-7 gap-1.5 rounded-lg px-2.5 text-xs',
-  sm: 'h-9 gap-1.5 rounded-lg px-3 text-sm',
+  xs: 'h-8 gap-1.5 rounded-lg px-3 text-xs',
+  sm: 'h-9 gap-2 rounded-lg px-3.5 text-[0.8125rem]',
   md: 'h-10 gap-2 rounded-xl px-4 text-sm',
   lg: 'h-12 gap-2 rounded-xl px-6 text-[0.9375rem]',
   icon: 'h-10 w-10 rounded-xl',
@@ -67,8 +72,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex select-none items-center justify-center whitespace-nowrap font-medium transition-all duration-200 ease-premium',
-        'active:scale-[0.98] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100',
+        'inline-flex select-none items-center justify-center whitespace-nowrap font-medium leading-none tracking-[-0.006em]',
+        // Colour and shadow animate; transform is a separate, faster curve so the
+        // press feels immediate while the hover stays soft.
+        'transition-[background-color,border-color,box-shadow,color,transform] duration-200 ease-premium',
+        'active:scale-[0.985] active:duration-75',
+        'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100',
         variants[variant],
         sizes[size],
         block && 'w-full',
@@ -76,13 +85,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       )}
       {...props}
     >
+      {/* The spinner occupies the leading slot so the label never shifts when a
+          button enters its loading state. */}
       {loading ? (
-        <Loader2 className="animate-spin" size={16} aria-hidden />
+        <Loader2 className="shrink-0 animate-spin" size={16} aria-hidden />
       ) : (
-        leadingIcon && <span className="shrink-0">{leadingIcon}</span>
+        leadingIcon && <span className="grid shrink-0 place-items-center">{leadingIcon}</span>
       )}
       {children}
-      {trailingIcon && !loading && <span className="shrink-0">{trailingIcon}</span>}
+      {trailingIcon && !loading && (
+        <span className="grid shrink-0 place-items-center">{trailingIcon}</span>
+      )}
     </button>
   ),
 );

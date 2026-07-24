@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { memo } from 'react';
 import { Activity, Gauge, ShieldAlert, TrendingUp, type LucideIcon } from 'lucide-react';
 
 import { cn, percent } from '@/lib/utils';
@@ -16,8 +17,8 @@ interface Insight {
 
 const toneClasses: Record<InsightTone, string> = {
   brand: 'bg-brand-600/10 text-brand-700 dark:bg-accent-400/10 dark:text-accent-300',
-  green: 'bg-success-500/10 text-success-600 dark:text-success-500',
-  amber: 'bg-warning-500/10 text-warning-600 dark:text-warning-500',
+  green: 'bg-success-500/10 text-success-600 dark:text-success-400',
+  amber: 'bg-warning-500/10 text-warning-600 dark:text-warning-400',
 };
 
 /**
@@ -84,7 +85,7 @@ interface InsightsPanelProps {
 }
 
 /** AI observations panel derived from the current analytics window. */
-export function InsightsPanel({ summary, days }: InsightsPanelProps) {
+export const InsightsPanel = memo(function InsightsPanel({ summary, days }: InsightsPanelProps) {
   const insights = buildInsights(summary, days);
 
   if (insights.length === 0) {
@@ -103,13 +104,13 @@ export function InsightsPanel({ summary, days }: InsightsPanelProps) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-          className="flex gap-3 rounded-xl border border-line bg-surface-muted p-3.5"
+          className="flex gap-3 rounded-xl border border-line bg-surface-muted p-4"
         >
           <span
             className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg', toneClasses[insight.tone])}
             aria-hidden
           >
-            <insight.Icon size={17} />
+            <insight.Icon size={18} />
           </span>
           <div className="min-w-0">
             <p className="text-sm font-semibold leading-snug text-fg">{insight.title}</p>
@@ -119,4 +120,4 @@ export function InsightsPanel({ summary, days }: InsightsPanelProps) {
       ))}
     </ul>
   );
-}
+});

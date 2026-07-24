@@ -117,7 +117,7 @@ export function DocumentsPage() {
         meta={
           <>
             <Badge tone="brand" size="sm">
-              <Database size={11} aria-hidden /> {counts.indexed} indexed
+              <Database size={12} aria-hidden /> {counts.indexed} indexed
             </Badge>
             <Badge tone="slate" size="sm">
               <span className="nums">{totalChunks.toLocaleString()}</span> retrievable chunks
@@ -136,7 +136,7 @@ export function DocumentsPage() {
       />
 
       {/* ---------------- Upload zone ---------------- */}
-      <Card className="mb-5">
+      <Card className="mb-6">
         <div
           role="button"
           tabIndex={0}
@@ -159,7 +159,7 @@ export function DocumentsPage() {
             void handleFile(event.dataTransfer.files?.[0]);
           }}
           className={cn(
-            'flex cursor-pointer flex-col items-center justify-center gap-3.5 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-all duration-300 ease-premium',
+            'flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-[transform,box-shadow,border-color,background-color,color,opacity] duration-300 ease-premium',
             dragging
               ? 'border-brand-600 bg-brand-600/[0.06] dark:border-accent-400 dark:bg-accent-400/[0.08]'
               : 'border-line-strong hover:border-brand-500 hover:bg-surface-muted',
@@ -185,7 +185,7 @@ export function DocumentsPage() {
                   ? 'Release to upload'
                   : 'Drop a clinical PDF here'}
             </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">
+            <p className="mt-2 text-sm leading-relaxed text-fg-muted">
               Guidelines, review articles and departmental protocols. Text is extracted, chunked and
               embedded so the assistant can cite it.
             </p>
@@ -214,7 +214,7 @@ export function DocumentsPage() {
 
       {/* ---------------- Library ---------------- */}
       <Card padding="none">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4 sm:p-6">
           <Tabs
             items={tabs}
             value={filter}
@@ -229,12 +229,12 @@ export function DocumentsPage() {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search documents…"
             aria-label="Search documents"
-            icon={<Search size={15} />}
+            icon={<Search size={16} />}
             containerClassName="w-full sm:w-64"
           />
         </div>
 
-        <div className="p-4 sm:p-5">
+        <div className="p-4 sm:p-6">
           {isLoading ? (
             <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, index) => (
@@ -300,7 +300,7 @@ export function DocumentsPage() {
             </Button>
             <Button
               variant="danger"
-              leadingIcon={<Trash2 size={15} />}
+              leadingIcon={<Trash2 size={16} />}
               onClick={() => {
                 if (pendingDelete) remove.mutate(pendingDelete.id);
                 setPendingDelete(null);
@@ -322,7 +322,7 @@ export function DocumentsPage() {
 
 function Count({ value }: { value: number }) {
   return (
-    <span className="rounded-full bg-fg/[0.08] px-1.5 text-[10px] font-semibold text-fg-muted nums">
+    <span className="rounded-full bg-fg/[0.08] px-2 text-[10px] font-semibold text-fg-muted nums">
       {value}
     </span>
   );
@@ -344,12 +344,12 @@ function DocumentCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="group flex flex-col rounded-2xl border border-line bg-surface-muted p-4 transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-card-hover"
+      className="group flex flex-col rounded-2xl border border-line bg-surface-muted p-4 transition-[transform,box-shadow,border-color,background-color,color,opacity] duration-300 ease-premium hover:-translate-y-0.5 hover:elevation-2"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-danger-500/10 text-danger-600 ring-1 ring-inset ring-danger-500/15 dark:text-danger-500">
-            <FileText size={19} aria-hidden />
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-danger-500/10 text-danger-600 ring-1 ring-inset ring-danger-500/15 dark:text-danger-400">
+            <FileText size={18} aria-hidden />
           </span>
           <div className="min-w-0">
             <h3 className="truncate text-sm font-semibold text-fg" title={doc.title}>
@@ -363,10 +363,10 @@ function DocumentCard({
 
         <IconButton
           label={`Remove ${doc.title}`}
-          icon={<Trash2 size={15} />}
+          icon={<Trash2 size={16} />}
           size="icon-sm"
           onClick={onDelete}
-          className="shrink-0 opacity-0 transition-opacity hover:text-danger-600 focus-visible:opacity-100 group-hover:opacity-100"
+          className="shrink-0 opacity-0 transition-opacity hover:text-danger-600 dark:hover:text-danger-400 focus-visible:opacity-100 group-hover:opacity-100"
         />
       </div>
 
@@ -392,7 +392,7 @@ function DocumentCard({
       )}
 
       {doc.status === 'failed' && doc.error && (
-        <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-danger-500/[0.07] p-2 text-[11px] leading-relaxed text-danger-700 dark:text-danger-500">
+        <p className="mt-3 flex items-start gap-2 rounded-lg bg-danger-500/[0.07] p-2 text-[11px] leading-relaxed text-danger-700 dark:text-danger-400">
           <TriangleAlert size={12} className="mt-0.5 shrink-0" aria-hidden />
           {doc.error}
         </p>
@@ -400,8 +400,8 @@ function DocumentCard({
 
       <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
         <Badge tone={STATUS_TONE[doc.status]} size="sm">
-          {doc.status === 'processing' && <Loader2 size={10} className="animate-spin" aria-hidden />}
-          {doc.status === 'indexed' && <CheckCircle2 size={10} aria-hidden />}
+          {doc.status === 'processing' && <Loader2 size={12} className="animate-spin" aria-hidden />}
+          {doc.status === 'indexed' && <CheckCircle2 size={12} aria-hidden />}
           {STATUS_LABEL[doc.status]}
         </Badge>
         <span className="truncate text-[11px] text-fg-subtle">{formatDate(doc.created_at)}</span>

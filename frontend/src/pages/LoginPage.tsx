@@ -86,7 +86,7 @@ export function LoginPage() {
             <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-fg-muted">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-line-strong bg-surface text-brand-700 accent-brand-700"
+                className="h-4 w-4 rounded border-line-strong bg-surface accent-brand-700 dark:accent-accent-400"
                 {...register('remember')}
               />
               Keep me signed in
@@ -103,8 +103,8 @@ export function LoginPage() {
 
         {/* Session-scope notice: tokens persist locally, so shared workstations
             need the explicit warning radiology departments expect. */}
-        <p className="flex items-start gap-2 rounded-xl bg-surface-sunken px-3 py-2.5 text-[11px] leading-relaxed text-fg-subtle">
-          <AlertCircle size={13} className="mt-px shrink-0" aria-hidden />
+        <p className="flex items-start gap-2 rounded-xl bg-surface-sunken px-3 py-3 text-[11px] leading-relaxed text-fg-subtle">
+          <AlertCircle size={14} className="mt-px shrink-0" aria-hidden />
           On shared workstations, sign out when you finish — your session stays active on this device.
         </p>
 
@@ -113,7 +113,7 @@ export function LoginPage() {
           size="lg"
           block
           loading={login.isPending}
-          trailingIcon={!login.isPending && <ArrowRight size={17} />}
+          trailingIcon={!login.isPending && <ArrowRight size={18} />}
         >
           {login.isPending ? 'Verifying credentials…' : 'Sign in'}
         </Button>

@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { memo } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -8,7 +9,7 @@ import { cn } from '@/lib/utils';
  * scan line sweeps the field — the visual shorthand for "AI is reading this
  * chest X-ray".
  */
-export function ThoraxArt({ className, scan = true }: { className?: string; scan?: boolean }) {
+export const ThoraxArt = memo(function ThoraxArt({ className, scan = true }: { className?: string; scan?: boolean }) {
   const reduceMotion = useReducedMotion();
   const breathe = reduceMotion
     ? {}
@@ -108,4 +109,4 @@ export function ThoraxArt({ className, scan = true }: { className?: string; scan
       </g>
     </svg>
   );
-}
+});

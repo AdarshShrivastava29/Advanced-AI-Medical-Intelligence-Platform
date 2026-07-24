@@ -9,9 +9,9 @@ type BadgeSize = 'sm' | 'md';
 
 const softTones: Record<Tone, string> = {
   brand: 'bg-brand-600/10 text-brand-700 ring-brand-600/20 dark:text-accent-300 dark:ring-accent-400/25',
-  green: 'bg-success-500/10 text-success-700 ring-success-500/20 dark:text-success-500',
-  amber: 'bg-warning-500/10 text-warning-700 ring-warning-500/25 dark:text-warning-500',
-  red: 'bg-danger-500/10 text-danger-700 ring-danger-500/20 dark:text-danger-500',
+  green: 'bg-success-500/10 text-success-700 ring-success-500/20 dark:text-success-400',
+  amber: 'bg-warning-500/10 text-warning-700 ring-warning-500/25 dark:text-warning-400',
+  red: 'bg-danger-500/10 text-danger-700 ring-danger-500/20 dark:text-danger-400',
   slate: 'bg-fg/[0.06] text-fg-muted ring-line',
   teal: 'bg-clinical-600/10 text-clinical-700 ring-clinical-600/20 dark:text-clinical-300',
   violet: 'bg-violet-500/10 text-violet-700 ring-violet-500/20 dark:text-violet-300',
@@ -29,9 +29,9 @@ const solidTones: Record<Tone, string> = {
 
 const outlineTones: Record<Tone, string> = {
   brand: 'text-brand-700 ring-brand-500/40 dark:text-brand-300',
-  green: 'text-success-700 ring-success-500/40 dark:text-success-500',
-  amber: 'text-warning-700 ring-warning-500/40 dark:text-warning-500',
-  red: 'text-danger-700 ring-danger-500/40 dark:text-danger-500',
+  green: 'text-success-700 ring-success-500/40 dark:text-success-400',
+  amber: 'text-warning-700 ring-warning-500/40 dark:text-warning-400',
+  red: 'text-danger-700 ring-danger-500/40 dark:text-danger-400',
   slate: 'text-fg-muted ring-line-strong',
   teal: 'text-clinical-700 ring-clinical-500/40 dark:text-clinical-300',
   violet: 'text-violet-700 ring-violet-500/40 dark:text-violet-300',
@@ -49,7 +49,7 @@ const dotTones: Record<Tone, string> = {
 
 const sizes: Record<BadgeSize, string> = {
   sm: 'px-2 py-0.5 text-[0.6875rem]',
-  md: 'px-2.5 py-1 text-xs',
+  md: 'px-3 py-1 text-xs',
 };
 
 interface BadgeProps {
@@ -76,7 +76,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-medium ring-1 ring-inset',
+        'inline-flex items-center gap-2 whitespace-nowrap rounded-full font-medium ring-1 ring-inset',
         sizes[size],
         toneClasses,
         className,

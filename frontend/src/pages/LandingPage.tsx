@@ -68,7 +68,7 @@ export function LandingPage() {
   return (
     <div className="app-gradient min-h-screen">
       {/* ---------------- Header ---------------- */}
-      <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+      <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <Brand tagline={ORG_NAME} />
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -85,7 +85,7 @@ export function LandingPage() {
 
       {/* ---------------- Hero ---------------- */}
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-6">
-        <div className="clinical-hero rounded-panel px-6 py-14 shadow-panel sm:px-12 sm:py-20">
+        <div className="clinical-hero rounded-panel px-6 py-14 elevation-4 sm:px-12 sm:py-20">
           <div className="pointer-events-none absolute inset-0" aria-hidden>
             <div className="absolute -right-24 -top-20 h-96 w-96 rounded-full bg-accent-400/12 blur-3xl" />
             <div className="absolute -left-20 bottom-0 h-72 w-72 rounded-full bg-clinical-400/10 blur-3xl" />
@@ -113,7 +113,7 @@ export function LandingPage() {
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             >
               <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/85">
-                <Sparkles size={13} aria-hidden /> AI Medical Intelligence Platform
+                <Sparkles size={14} aria-hidden /> AI Medical Intelligence Platform
               </span>
 
               <h1 className="mt-6 max-w-2xl font-display text-display-md font-bold leading-tight text-white sm:text-display-lg">
@@ -127,7 +127,7 @@ export function LandingPage() {
                 shows its work, every time.
               </p>
 
-              <div className="mt-9 flex flex-wrap items-center gap-3">
+              <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link to={primaryHref}>
                   <Button
                     size="lg"
@@ -180,7 +180,7 @@ export function LandingPage() {
       <section className="mx-auto max-w-7xl px-6 pb-20">
         <div className="mb-10 max-w-2xl">
           <p className="medical-label">Platform capabilities</p>
-          <h2 className="mt-2.5 font-display text-display-sm font-bold text-fg">
+          <h2 className="mt-3 font-display text-display-sm font-bold text-fg">
             Built for the reading room, not the demo reel.
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-fg-muted">
@@ -217,24 +217,24 @@ export function LandingPage() {
         <div className="surface-card p-8 sm:p-10">
           <div className="max-w-2xl">
             <p className="medical-label">Clinical workflow</p>
-            <h2 className="mt-2.5 font-display text-display-sm font-bold text-fg">
+            <h2 className="mt-3 font-display text-display-sm font-bold text-fg">
               Three steps, fully auditable.
             </h2>
           </div>
 
-          <ol className="mt-9 grid gap-6 sm:grid-cols-3">
+          <ol className="mt-8 grid gap-6 sm:grid-cols-3">
             {WORKFLOW.map(([step, title, body]) => (
               <li key={step} className="relative">
                 <span className="font-display text-4xl font-bold text-brand-600/20 dark:text-accent-400/25">
                   {step}
                 </span>
                 <h3 className="mt-2 font-display text-base font-semibold text-fg">{title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">{body}</p>
+                <p className="mt-2 text-sm leading-relaxed text-fg-muted">{body}</p>
               </li>
             ))}
           </ol>
 
-          <div className="mt-9 flex flex-wrap items-center gap-3 border-t border-line pt-7">
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-line pt-8">
             <Link to={primaryHref}>
               <Button trailingIcon={<ArrowRight size={16} />}>
                 {isAuthenticated ? 'Open your workspace' : 'Request access'}

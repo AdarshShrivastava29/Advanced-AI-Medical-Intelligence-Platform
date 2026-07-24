@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { memo } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -26,7 +27,7 @@ interface EcgLineProps {
  * reads as a live monitor rather than a decorative squiggle. Falls back to a
  * static, fully-drawn line when the user prefers reduced motion.
  */
-export function EcgLine({
+export const EcgLine = memo(function EcgLine({
   color = 'currentColor',
   className,
   cycles = 6,
@@ -61,4 +62,4 @@ export function EcgLine({
       />
     </svg>
   );
-}
+});

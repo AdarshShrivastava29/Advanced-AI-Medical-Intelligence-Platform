@@ -15,11 +15,11 @@ const RULES: Rule[] = [
 ];
 
 const LEVELS = [
-  { label: 'Too weak', tone: 'bg-danger-500', text: 'text-danger-600 dark:text-danger-500' },
-  { label: 'Weak', tone: 'bg-danger-500', text: 'text-danger-600 dark:text-danger-500' },
-  { label: 'Fair', tone: 'bg-warning-500', text: 'text-warning-600 dark:text-warning-500' },
-  { label: 'Strong', tone: 'bg-success-500', text: 'text-success-600 dark:text-success-500' },
-  { label: 'Excellent', tone: 'bg-success-600', text: 'text-success-600 dark:text-success-500' },
+  { label: 'Too weak', tone: 'bg-danger-500', text: 'text-danger-600 dark:text-danger-400' },
+  { label: 'Weak', tone: 'bg-danger-500', text: 'text-danger-600 dark:text-danger-400' },
+  { label: 'Fair', tone: 'bg-warning-500', text: 'text-warning-600 dark:text-warning-400' },
+  { label: 'Strong', tone: 'bg-success-500', text: 'text-success-600 dark:text-success-400' },
+  { label: 'Excellent', tone: 'bg-success-600', text: 'text-success-600 dark:text-success-400' },
 ];
 
 /**
@@ -31,7 +31,7 @@ export function PasswordStrength({ value, className }: { value: string; classNam
   const level = LEVELS[value.length === 0 ? 0 : passed];
 
   return (
-    <div className={cn('space-y-2.5', className)}>
+    <div className={cn('space-y-3', className)}>
       <div className="flex items-center gap-2">
         <div className="flex flex-1 gap-1" aria-hidden>
           {RULES.map((rule, index) => (
@@ -49,15 +49,15 @@ export function PasswordStrength({ value, className }: { value: string; classNam
         </span>
       </div>
 
-      <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5" aria-live="polite">
+      <ul className="grid grid-cols-2 gap-x-3 gap-y-2" aria-live="polite">
         {RULES.map((rule) => {
           const ok = rule.test(value);
           return (
             <li
               key={rule.label}
               className={cn(
-                'flex items-center gap-1.5 text-[11px] transition-colors',
-                ok ? 'text-success-600 dark:text-success-500' : 'text-fg-subtle',
+                'flex items-center gap-2 text-[11px] transition-colors',
+                ok ? 'text-success-600 dark:text-success-400' : 'text-fg-subtle',
               )}
             >
               {ok ? <Check size={12} aria-hidden /> : <X size={12} aria-hidden />}

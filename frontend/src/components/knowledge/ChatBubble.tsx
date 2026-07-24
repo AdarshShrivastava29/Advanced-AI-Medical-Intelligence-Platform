@@ -19,7 +19,7 @@ export function AssistantAvatar() {
       className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-700 to-clinical-700 text-white shadow-sm"
       aria-hidden
     >
-      <Stethoscope size={17} />
+      <Stethoscope size={18} />
     </span>
   );
 }
@@ -30,8 +30,8 @@ function CitationCard({ citation }: { citation: Citation }) {
     <li className="rounded-xl border border-line bg-surface p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-danger-500/10 text-danger-600 dark:text-danger-500">
-            <FileText size={13} aria-hidden />
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-danger-500/10 text-danger-600 dark:text-danger-400">
+            <FileText size={14} aria-hidden />
           </span>
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold text-fg">{citation.filename}</p>
@@ -69,7 +69,7 @@ export function ChatBubble({ message }: { message: ChatMessageItem }) {
           {isUser ? 'You' : 'Clinical assistant'}
           {!isUser && !message.grounded && (
             <Badge tone="amber" size="sm">
-              <ShieldAlert size={10} aria-hidden /> Ungrounded
+              <ShieldAlert size={12} aria-hidden /> Ungrounded
             </Badge>
           )}
         </span>
@@ -81,7 +81,7 @@ export function ChatBubble({ message }: { message: ChatMessageItem }) {
             isUser
               ? 'rounded-tr-sm bg-brand-700 text-white'
               : message.grounded
-                ? 'rounded-tl-sm border border-line bg-surface text-fg shadow-card'
+                ? 'rounded-tl-sm border border-line bg-surface text-fg elevation-1'
                 : 'rounded-tl-sm border border-warning-500/30 bg-warning-500/[0.07] text-fg',
           )}
         >
@@ -111,7 +111,7 @@ export function ChatBubble({ message }: { message: ChatMessageItem }) {
               aria-label="Copy answer"
               className="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-lg border border-line bg-surface text-fg-subtle opacity-0 shadow-sm transition-opacity hover:text-fg focus-visible:opacity-100 group-hover:opacity-100"
             >
-              <Copy size={13} aria-hidden />
+              <Copy size={14} aria-hidden />
             </button>
           )}
         </div>
@@ -123,12 +123,12 @@ export function ChatBubble({ message }: { message: ChatMessageItem }) {
               type="button"
               onClick={() => setShowSources((value) => !value)}
               aria-expanded={showSources}
-              className="inline-flex items-center gap-1.5 rounded-lg px-1 py-0.5 text-xs font-medium text-brand-700 transition hover:underline dark:text-accent-300"
+              className="inline-flex items-center gap-2 rounded-lg px-1 py-0.5 text-xs font-medium text-brand-700 transition hover:underline dark:text-accent-300"
             >
               <FileText size={12} aria-hidden />
               {message.citations.length} source{message.citations.length > 1 ? 's' : ''}
               <ChevronDown
-                size={13}
+                size={14}
                 aria-hidden
                 className={cn('transition-transform duration-200', showSources && 'rotate-180')}
               />

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import * as authApi from '@/lib/api/auth';
 import { useAuthStore } from '@/store/authStore';
@@ -40,10 +41,14 @@ export function useRegister() {
   return useMutation({ mutationFn: authApi.register });
 }
 
-/** Returns a logout handler that revokes the refresh token and clears state. */
+/**
+ * Returns a logout handler that revokes the refresh token and clears state.
+ * Memoised so consumers can pass it to memoised children without defeating
+ * their `React.memo` — behaviour is unchanged.
+ */
 export function useLogout() {
   const queryClient = useQueryClient();
-  return async () => {
+  return useCallback(async () => {
     const { refreshToken, clear } = useAuthStore.getState();
     try {
       if (refreshToken) await authApi.logout(refreshToken);
@@ -51,5 +56,5 @@ export function useLogout() {
       clear();
       queryClient.clear();
     }
-  };
+  }, [queryClient]);
 }

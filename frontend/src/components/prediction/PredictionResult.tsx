@@ -65,7 +65,7 @@ export function PredictionResult({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-5"
+      className="space-y-6"
     >
       {/* ---------------- Verdict banner ---------------- */}
       <Card padding="none" className="overflow-hidden">
@@ -77,7 +77,7 @@ export function PredictionResult({
           aria-hidden
         />
 
-        <div className="grid gap-6 p-6 sm:p-7 lg:grid-cols-[auto_1fr_auto] lg:items-center">
+        <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[auto_1fr_auto] lg:items-center">
           {/* Confidence gauge */}
           <div className="flex justify-center lg:justify-start">
             <RadialGauge value={prediction.confidence} tone={gaugeTone} size={132} thickness={9}>
@@ -100,28 +100,28 @@ export function PredictionResult({
                 className={cn(
                   'grid h-11 w-11 shrink-0 place-items-center rounded-xl',
                   isPneumonia
-                    ? 'bg-danger-500/12 text-danger-600 dark:text-danger-500'
-                    : 'bg-success-500/12 text-success-600 dark:text-success-500',
+                    ? 'bg-danger-500/12 text-danger-600 dark:text-danger-400'
+                    : 'bg-success-500/12 text-success-600 dark:text-success-400',
                 )}
                 aria-hidden
               >
-                {isPneumonia ? <Activity size={22} /> : <CheckCircle2 size={22} />}
+                {isPneumonia ? <Activity size={20} /> : <CheckCircle2 size={20} />}
               </span>
               <h2 className="font-display text-display-sm font-bold text-fg">
                 {prediction.predicted_class}
               </h2>
               <RiskBadge level={risk} />
             </div>
-            <p className="mt-2.5 text-sm leading-relaxed text-fg-muted">
+            <p className="mt-3 text-sm leading-relaxed text-fg-muted">
               {isPneumonia
                 ? 'Findings consistent with pneumonia were localised in this study. Correlate clinically and confirm against the activation map below.'
                 : 'No pneumonia pattern was detected in this study. Review the activation map to confirm the model attended to lung fields.'}
             </p>
 
-            <dl className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2.5 lg:justify-start">
+            <dl className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-3 lg:justify-start">
               {metadata.map((entry) => (
-                <div key={entry.label} className="flex items-center gap-1.5 text-xs">
-                  <entry.Icon size={13} className="shrink-0 text-fg-subtle" aria-hidden />
+                <div key={entry.label} className="flex items-center gap-2 text-xs">
+                  <entry.Icon size={14} className="shrink-0 text-fg-subtle" aria-hidden />
                   <dt className="text-fg-subtle">{entry.label}:</dt>
                   <dd className="font-medium text-fg">{entry.value}</dd>
                 </div>
@@ -150,11 +150,11 @@ export function PredictionResult({
             <Badge tone={prediction.ood_flag ? 'amber' : 'green'} size="sm" className="justify-center">
               {prediction.ood_flag ? (
                 <>
-                  <ShieldAlert size={11} aria-hidden /> In review
+                  <ShieldAlert size={12} aria-hidden /> In review
                 </>
               ) : (
                 <>
-                  <ShieldCheck size={11} aria-hidden /> In distribution
+                  <ShieldCheck size={12} aria-hidden /> In distribution
                 </>
               )}
             </Badge>
@@ -162,11 +162,11 @@ export function PredictionResult({
         </div>
 
         {prediction.ood_flag && (
-          <div className="border-t border-line px-6 pb-6 sm:px-7">
+          <div className="border-t border-line px-6 pb-6 sm:px-8">
             <Alert
               tone="warning"
               title="Out-of-distribution study"
-              className="mt-5"
+              className="mt-6"
             >
               This image sits outside the model&apos;s training distribution — it may not be a standard
               frontal chest radiograph. Treat the classification and confidence above as unreliable
@@ -177,25 +177,25 @@ export function PredictionResult({
       </Card>
 
       {/* ---------------- Explainability + probabilities ---------------- */}
-      <div className="grid gap-5 xl:grid-cols-5">
+      <div className="grid gap-6 xl:grid-cols-5">
         <Card className="xl:col-span-3">
           <CardHeader
             eyebrow="Explainability"
             title="Grad-CAM localisation"
             subtitle="Where the model looked when it made this call"
-            icon={<ScanEye size={19} />}
+            icon={<ScanEye size={18} />}
             divided
           />
           <GradCamViewer gradcam={prediction.gradcam} predictionId={prediction.id} />
         </Card>
 
-        <div className="space-y-5 xl:col-span-2">
+        <div className="space-y-6 xl:col-span-2">
           <Card>
             <CardHeader
               eyebrow="Model output"
               title="Class probabilities"
               subtitle="Softmax distribution across classes"
-              icon={<Gauge size={19} />}
+              icon={<Gauge size={18} />}
               divided
             />
             <ProbabilityBreakdown
@@ -214,16 +214,16 @@ export function PredictionResult({
           </Card>
 
           <Card>
-            <CardHeader eyebrow="Governance" title="Review checklist" icon={<ShieldCheck size={19} />} divided />
-            <ul className="space-y-2.5 text-sm">
+            <CardHeader eyebrow="Governance" title="Review checklist" icon={<ShieldCheck size={18} />} divided />
+            <ul className="space-y-3 text-sm">
               {[
                 'Confirm the activation map covers lung fields, not artefacts or annotations.',
                 'Correlate the finding with presentation, history and prior imaging.',
                 'Record your assessment in the reporting system of record.',
               ].map((item) => (
-                <li key={item} className="flex gap-2.5">
+                <li key={item} className="flex gap-3">
                   <span
-                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-700 dark:bg-accent-400"
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-700 dark:bg-accent-400"
                     aria-hidden
                   />
                   <span className="leading-relaxed text-fg-muted">{item}</span>
@@ -241,7 +241,7 @@ export function PredictionResult({
             eyebrow="Clinical documentation"
             title="AI-drafted report"
             subtitle="Grounded in your indexed medical literature"
-            icon={<FileText size={19} />}
+            icon={<FileText size={18} />}
             divided
             className="no-print"
           />
@@ -259,7 +259,7 @@ export function PredictionResult({
             eyebrow="Clinical documentation"
             title="Report unavailable"
             subtitle="No narrative report was generated for this study"
-            icon={<FileText size={19} />}
+            icon={<FileText size={18} />}
             divided
           />
           <Alert tone="clinical">

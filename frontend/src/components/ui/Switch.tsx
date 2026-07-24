@@ -81,7 +81,7 @@ export function Segmented<T extends string>({
       role="radiogroup"
       aria-label={label}
       className={cn(
-        'inline-flex items-center gap-1 rounded-xl border border-line bg-surface-muted p-1',
+        'inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-line bg-surface-muted p-1 no-scrollbar',
         className,
       )}
     >
@@ -95,8 +95,8 @@ export function Segmented<T extends string>({
             aria-checked={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              'relative flex items-center gap-1.5 whitespace-nowrap rounded-lg font-medium transition-colors',
-              size === 'sm' ? 'h-7 px-2.5 text-xs' : 'h-9 px-3.5 text-sm',
+              'relative flex items-center gap-2 whitespace-nowrap rounded-lg font-medium transition-colors',
+              size === 'sm' ? 'h-8 px-3 text-xs' : 'h-9 px-4 text-sm',
               active ? 'text-brand-700 dark:text-brand-300' : 'text-fg-muted hover:text-fg',
             )}
           >
@@ -108,7 +108,7 @@ export function Segmented<T extends string>({
                 aria-hidden
               />
             )}
-            <span className="relative flex items-center gap-1.5">
+            <span className="relative flex items-center gap-2">
               {option.icon}
               {option.label}
             </span>

@@ -9,7 +9,14 @@
 
      Light: #F5F8FC canvas on #FFFFFF cards — clinical, near-white, low glare.
      Dark:  #0F172A canvas, #172033 muted, #1E293B cards — elegant navy, never
-            pure black, so radiology imagery stays the brightest thing on screen. */
+            pure black, so radiology imagery stays the brightest thing on screen.
+
+     Spacing system: 4px base grid. Structural rhythm (page sections, card
+     padding, grid gaps) uses 8px steps only — 16 / 24 / 32 / 40 / 48. The `0.5`
+     step is reserved for 2px optical nudges on icons beside text.
+
+     Icon scale: 12 / 14 / 16 / 18 / 20 / 24 / 28 — nothing in between, so
+     stroke weight reads evenly across the product. */
   :root {
     --c-canvas: 245 248 252;
     --c-surface: 255 255 255;
@@ -28,6 +35,28 @@
     --glass-bg-opacity: 0.86;
     --glass-border: 223 231 240;
     --glass-border-opacity: 1;
+
+    /* Elevation ladder. Three stacked layers — a contact shadow, a short
+       diffusion and a long ambient — read as depth without looking heavy. */
+    --sh-1:
+      0 1px 1px rgb(15 42 76 / 0.03),
+      0 2px 4px -1px rgb(15 42 76 / 0.05),
+      0 6px 14px -6px rgb(15 42 76 / 0.07);
+    --sh-2:
+      0 1px 2px rgb(15 42 76 / 0.04),
+      0 4px 8px -2px rgb(15 42 76 / 0.06),
+      0 16px 28px -12px rgb(15 42 76 / 0.13);
+    --sh-3:
+      0 2px 4px rgb(15 42 76 / 0.05),
+      0 8px 16px -4px rgb(15 42 76 / 0.09),
+      0 28px 48px -20px rgb(15 42 76 / 0.20);
+    --sh-4:
+      0 4px 8px rgb(15 42 76 / 0.06),
+      0 16px 32px -8px rgb(15 42 76 / 0.12),
+      0 44px 72px -32px rgb(15 42 76 / 0.28);
+    /* Hairline top highlight — the detail that separates a premium card from a
+       flat rectangle. */
+    --sh-highlight: inset 0 1px 0 rgb(255 255 255 / 0.7);
 
     color-scheme: light;
   }
@@ -49,6 +78,26 @@
     --glass-border: 42 58 82;
     --glass-border-opacity: 1;
 
+    /* On navy, a blue-tinted shadow disappears — depth has to come from real
+       darkness plus a brighter border and a faint top highlight. */
+    --sh-1:
+      0 1px 1px rgb(2 6 16 / 0.24),
+      0 2px 6px -1px rgb(2 6 16 / 0.30),
+      0 8px 18px -8px rgb(2 6 16 / 0.42);
+    --sh-2:
+      0 1px 2px rgb(2 6 16 / 0.28),
+      0 6px 12px -3px rgb(2 6 16 / 0.36),
+      0 20px 34px -14px rgb(2 6 16 / 0.55);
+    --sh-3:
+      0 2px 4px rgb(2 6 16 / 0.32),
+      0 10px 20px -6px rgb(2 6 16 / 0.44),
+      0 32px 56px -22px rgb(2 6 16 / 0.62);
+    --sh-4:
+      0 4px 10px rgb(2 6 16 / 0.36),
+      0 20px 40px -10px rgb(2 6 16 / 0.50),
+      0 52px 84px -36px rgb(2 6 16 / 0.70);
+    --sh-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+
     color-scheme: dark;
   }
 
@@ -66,6 +115,9 @@
     @apply bg-canvas text-fg antialiased;
     font-family: 'Inter', system-ui, 'Segoe UI', sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+    font-variant-ligatures: contextual;
+    line-height: 1.55;
+    letter-spacing: -0.006em;
     text-rendering: optimizeLegibility;
   }
 
@@ -73,8 +125,16 @@
   h2,
   h3,
   h4 {
-    @apply font-display tracking-tight text-fg;
+    @apply font-display text-fg;
     font-feature-settings: 'ss01';
+    letter-spacing: -0.021em;
+    line-height: 1.2;
+    /* Avoids a single orphaned word on wrapped headings. */
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   /* Accessible focus ring for keyboard navigation (WCAG 2.4.7). */
@@ -105,6 +165,14 @@
     @apply bg-fg-subtle bg-clip-content;
   }
 
+  /* Native range inputs pick up the brand colour without extra markup. */
+  input[type='range'] {
+    accent-color: rgb(15 76 129);
+  }
+  .dark input[type='range'] {
+    accent-color: rgb(91 192 235);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -120,17 +188,20 @@
 @layer components {
   /* ---- Surfaces ------------------------------------------------------- */
 
-  /* The default enterprise surface: opaque card, hairline border, soft shadow. */
+  /* The default enterprise surface: opaque card, hairline border, layered
+     elevation and a top highlight so the edge catches light. */
   .surface-card {
-    @apply rounded-2xl border border-line bg-surface shadow-card;
+    @apply rounded-2xl border border-line bg-surface;
+    box-shadow: var(--sh-1), var(--sh-highlight);
   }
 
   /* Frosted surface — reserved for floating chrome and the auth panel. Kept
      near-opaque so clinical text never loses contrast over imagery. */
   .glass-card {
-    @apply rounded-2xl border shadow-glass backdrop-blur-glass;
+    @apply rounded-2xl border backdrop-blur-glass;
     background-color: rgb(var(--glass-bg) / var(--glass-bg-opacity));
     border-color: rgb(var(--glass-border) / var(--glass-border-opacity));
+    box-shadow: var(--sh-2), var(--sh-highlight);
   }
 
   /* Chrome bars (sidebar / topbar). */
@@ -189,7 +260,7 @@
   /* ---- Loading -------------------------------------------------------- */
 
   .skeleton {
-    @apply relative overflow-hidden rounded-md bg-line/70;
+    @apply relative overflow-hidden rounded-lg bg-line/70;
   }
   .skeleton::after {
     @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/50 to-transparent content-[''] dark:via-white/[0.06];
@@ -197,16 +268,42 @@
 
   /* ---- Motion --------------------------------------------------------- */
 
-  /* Card lift used by interactive tiles and list rows. */
+  /* Card lift used by interactive tiles and list rows. Transform and shadow
+     only — never layout properties — so the hover stays on the compositor. */
   .lift {
-    @apply transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-card-hover;
+    @apply transition-[transform,box-shadow,border-color] duration-300 ease-premium;
+    will-change: transform;
+  }
+  .lift:hover {
+    @apply -translate-y-0.5 border-line-strong;
+    box-shadow: var(--sh-2), var(--sh-highlight);
+  }
+  .lift:active {
+    @apply translate-y-0;
+    box-shadow: var(--sh-1), var(--sh-highlight);
   }
 }
 
 @layer utilities {
+  /* Elevation ladder as utilities, so `hover:` / `dark:` variants apply.
+     1 = resting card · 2 = raised/hover · 3 = menus & dialogs · 4 = hero panels. */
+  .elevation-1 {
+    box-shadow: var(--sh-1), var(--sh-highlight);
+  }
+  .elevation-2 {
+    box-shadow: var(--sh-2), var(--sh-highlight);
+  }
+  .elevation-3 {
+    box-shadow: var(--sh-3), var(--sh-highlight);
+  }
+  .elevation-4 {
+    box-shadow: var(--sh-4), var(--sh-highlight);
+  }
+
   /* Numeric alignment for metrics/tables. */
   .nums {
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
   }
 
   /* Hide scrollbars on horizontally scrollable chrome (tab rails, chip rows). */
@@ -228,7 +325,7 @@
    surfaces, no shadows, black text on white. */
 @media print {
   @page {
-    margin: 14mm;
+    margin: 16mm 14mm;
   }
 
   .no-print {
@@ -239,6 +336,8 @@
   body {
     background: #fff !important;
     color: #000 !important;
+    font-size: 10.5pt;
+    line-height: 1.45;
   }
 
   .app-gradient,
@@ -250,15 +349,52 @@
   .surface-card,
   .glass-card,
   .print-sheet {
-    border-color: #d4d4d8 !important;
+    border-color: #cbd5e1 !important;
     box-shadow: none !important;
     background: #fff !important;
     backdrop-filter: none !important;
   }
 
+  /* The report itself owns the page — no nested card chrome. */
   .print-sheet {
     border: 0 !important;
     padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Browsers strip backgrounds and borders when printing. The letterhead rule
+     and the risk badge carry clinical meaning, so opt them back in. */
+  .print-sheet,
+  .print-sheet * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Never split a heading from its body, or a metadata block across pages. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+  p,
+  li,
+  tr,
+  dl,
+  figure,
+  blockquote {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .print-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  img {
+    max-width: 100% !important;
+    break-inside: avoid;
   }
 
   a[href]::after {

@@ -88,7 +88,7 @@ export function DashboardPage() {
   const meanConfidence = overview?.average_confidence ?? 0;
 
   return (
-    <PageTransition className="space-y-7">
+    <PageTransition className="space-y-8">
       <DashboardHero
         greeting={greetingFor(user?.full_name)}
         subtitle="Your medical intelligence workspace — imaging throughput, model behaviour and platform health at a glance."
@@ -106,7 +106,7 @@ export function DashboardPage() {
               <StatCard
                 label="Total studies"
                 value={overview?.total_predictions ?? 0}
-                icon={<Layers size={21} />}
+                icon={<Layers size={20} />}
                 series={series}
                 trendLabel="Cumulative, all time"
                 delay={0}
@@ -114,7 +114,7 @@ export function DashboardPage() {
               <StatCard
                 label="Analysed today"
                 value={todayCount}
-                icon={<ScanLine size={21} />}
+                icon={<ScanLine size={20} />}
                 tone="teal"
                 trend={dayDelta}
                 trendLabel="vs. yesterday"
@@ -123,7 +123,7 @@ export function DashboardPage() {
               <StatCard
                 label="Mean confidence"
                 value={percent(meanConfidence, 1)}
-                icon={<Gauge size={21} />}
+                icon={<Gauge size={20} />}
                 tone={meanConfidence >= 0.85 ? 'green' : meanConfidence >= 0.7 ? 'amber' : 'red'}
                 trendLabel="Across all studies"
                 delay={0.08}
@@ -131,7 +131,7 @@ export function DashboardPage() {
               <StatCard
                 label="Pneumonia flagged"
                 value={overview?.pneumonia_count ?? 0}
-                icon={<Activity size={21} />}
+                icon={<Activity size={20} />}
                 tone="red"
                 trendLabel={
                   overview && overview.total_predictions > 0
@@ -143,7 +143,7 @@ export function DashboardPage() {
               <StatCard
                 label="Needs review"
                 value={overview?.ood_count ?? 0}
-                icon={<ShieldAlert size={21} />}
+                icon={<ShieldAlert size={20} />}
                 tone="amber"
                 trendLabel="Out-of-distribution uploads"
                 delay={0.16}
@@ -151,7 +151,7 @@ export function DashboardPage() {
               <StatCard
                 label="Services healthy"
                 value={status.total > 0 ? `${status.healthy}/${status.total}` : '—'}
-                icon={<Server size={21} />}
+                icon={<Server size={20} />}
                 tone={status.state === 'operational' ? 'green' : 'amber'}
                 trendLabel={status.version ? `API v${status.version}` : status.label}
                 delay={0.2}
@@ -162,13 +162,13 @@ export function DashboardPage() {
       </section>
 
       {/* ---------------- Volume + insights ---------------- */}
-      <section className="grid gap-5 xl:grid-cols-3">
+      <section className="grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader
             eyebrow="Imaging throughput"
             title="Study volume"
             subtitle={`Daily analysed scans over the last ${WINDOW_DAYS} days`}
-            icon={<BarChart3 size={19} />}
+            icon={<BarChart3 size={18} />}
             action={
               <Link to="/analytics">
                 <Button variant="ghost" size="sm">
@@ -186,7 +186,7 @@ export function DashboardPage() {
             eyebrow="Model observations"
             title="AI insights"
             subtitle={`Derived from the last ${WINDOW_DAYS} days`}
-            icon={<Sparkles size={19} />}
+            icon={<Sparkles size={18} />}
             divided
           />
           {summary.isLoading ? (
@@ -202,13 +202,13 @@ export function DashboardPage() {
       </section>
 
       {/* ---------------- Worklist + platform ---------------- */}
-      <section className="grid gap-5 xl:grid-cols-3">
+      <section className="grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader
             eyebrow="Worklist"
             title="Recent studies"
             subtitle="Your latest analysed scans"
-            icon={<Stethoscope size={19} />}
+            icon={<Stethoscope size={18} />}
             action={
               <Link to="/history">
                 <Button variant="ghost" size="sm">
@@ -241,14 +241,14 @@ export function DashboardPage() {
           )}
         </Card>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* Inference stack */}
           <Card>
-            <CardHeader eyebrow="Inference stack" title="Active model" icon={<Brain size={19} />} divided />
+            <CardHeader eyebrow="Inference stack" title="Active model" icon={<Brain size={18} />} divided />
             <dl className="space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <dt className="text-fg-muted">Architecture</dt>
-                <dd className="flex items-center gap-1.5 font-medium text-fg">
+                <dd className="flex items-center gap-2 font-medium text-fg">
                   <Cpu size={14} className="text-brand-700 dark:text-accent-300" aria-hidden />
                   {model.arch ?? '—'}
                 </dd>
@@ -270,13 +270,13 @@ export function DashboardPage() {
               eyebrow="Platform"
               title="System health"
               subtitle={status.label}
-              icon={<Server size={19} />}
+              icon={<Server size={18} />}
               divided
             />
             {readiness.isLoading ? (
               <Skeleton className="h-28 rounded-xl" />
             ) : (
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {Object.entries(readiness.data?.checks ?? {}).map(([component, healthy]) => (
                   <li
                     key={component}
@@ -288,8 +288,8 @@ export function DashboardPage() {
                     <span
                       className={
                         healthy
-                          ? 'flex items-center gap-1.5 text-xs font-medium text-success-600 dark:text-success-500'
-                          : 'flex items-center gap-1.5 text-xs font-medium text-danger-600 dark:text-danger-500'
+                          ? 'flex items-center gap-2 text-xs font-medium text-success-600 dark:text-success-400'
+                          : 'flex items-center gap-2 text-xs font-medium text-danger-600 dark:text-danger-400'
                       }
                     >
                       {healthy ? (
@@ -307,7 +307,7 @@ export function DashboardPage() {
             {overview && overview.ood_count > 0 && (
               <Link
                 to="/history"
-                className="mt-4 flex items-start gap-2.5 rounded-xl border border-warning-500/25 bg-warning-500/[0.07] p-3 text-sm text-warning-700 transition hover:bg-warning-500/[0.12] dark:text-warning-500"
+                className="mt-4 flex items-start gap-3 rounded-xl border border-warning-500/25 bg-warning-500/[0.07] p-3 text-sm text-warning-700 transition hover:bg-warning-500/[0.12] dark:text-warning-400"
               >
                 <ShieldAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
                 <span>
@@ -325,7 +325,7 @@ export function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {QUICK_ACTIONS.map((action) => (
             <Link key={action.to} to={action.to} className="group rounded-2xl">
-              <Card interactive className="flex h-full items-center gap-3.5" padding="sm">
+              <Card interactive className="flex h-full items-center gap-4" padding="sm">
                 <span
                   className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-600/10 text-brand-700 ring-1 ring-inset ring-brand-600/15 transition-transform duration-300 group-hover:scale-105 dark:bg-accent-400/10 dark:text-accent-300 dark:ring-accent-400/20"
                   aria-hidden

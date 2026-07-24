@@ -13,11 +13,12 @@ const variantClasses: Record<CardVariant, string> = {
   sunken: 'rounded-2xl border border-line bg-surface-muted',
 };
 
+/** 8px rhythm: 16 / 24 / 32. No responsive steps — one card, one padding. */
 const paddingClasses: Record<CardPadding, string> = {
   none: 'p-0',
   sm: 'p-4',
-  md: 'p-5 sm:p-6',
-  lg: 'p-6 sm:p-8',
+  md: 'p-6',
+  lg: 'p-8',
 };
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -107,21 +108,23 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        'mb-5 flex items-start justify-between gap-3',
+        'mb-6 flex items-start justify-between gap-3',
         divided && 'border-b border-line pb-4',
         className,
       )}
     >
       <div className="flex min-w-0 items-start gap-3">
         {icon && (
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-500/10 text-brand-600 ring-1 ring-inset ring-brand-500/15 dark:text-brand-300">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-600/10 text-brand-700 ring-1 ring-inset ring-brand-600/15 dark:bg-accent-400/10 dark:text-accent-300 dark:ring-accent-400/20">
             {icon}
           </span>
         )}
         <div className="min-w-0">
           {eyebrow && <p className="medical-label mb-1">{eyebrow}</p>}
-          <h3 className="truncate text-base font-semibold leading-tight text-fg">{title}</h3>
-          {subtitle && <p className="mt-0.5 text-sm text-fg-muted">{subtitle}</p>}
+          <h3 className="truncate text-[0.9375rem] font-semibold leading-snug tracking-[-0.012em] text-fg">
+            {title}
+          </h3>
+          {subtitle && <p className="mt-1 text-[0.8125rem] leading-relaxed text-fg-muted">{subtitle}</p>}
         </div>
       </div>
       {action && <div className="shrink-0">{action}</div>}
@@ -134,7 +137,7 @@ export function CardFooter({ children, className }: { children: ReactNode; class
   return (
     <div
       className={cn(
-        'mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm text-fg-muted',
+        'mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm text-fg-muted',
         className,
       )}
     >
