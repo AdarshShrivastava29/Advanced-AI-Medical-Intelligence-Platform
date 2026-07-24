@@ -12,6 +12,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Header, Query, UploadFile, status
 
 from app.application.services.prediction_service import PredictionService
+from app.core.metrics import record_prediction
 from app.interface.dependencies import CurrentUser, get_prediction_service
 from app.interface.schemas.common import Page
 from app.interface.schemas.prediction import (
@@ -45,6 +46,7 @@ async def create_prediction(
         data=data,
         idempotency_key=idempotency_key,
     )
+    record_prediction(result.prediction.predicted_class, ood=result.prediction.ood_flag)
     return to_prediction_response(result)
 
 

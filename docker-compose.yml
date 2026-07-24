@@ -1,0 +1,100 @@
+# AIMIP — full production stack. Start with: docker compose up --build
+# (or `make up`). Configure secrets/providers in a root .env (see .env.example).
+
+x-backend-env: &backend-env
+  ENV: production
+  LOG_JSON: "true"
+  MONGODB_URI: mongodb://mongo:27017
+  DB_NAME: aimip
+  REDIS_URL: redis://redis:6379/0
+  CACHE_PROVIDER: redis
+  TASK_QUEUE: celery
+  VECTOR_DB: faiss
+  EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-sentence_transformer}
+  LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+  MODEL_ARCH: ${MODEL_ARCH:-densenet121}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  JWT_SECRET: ${JWT_SECRET:?set a strong JWT_SECRET in .env}
+  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+  WARMUP_ON_STARTUP: "true"
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment: *backend-env
+    volumes:
+      - aimip_data:/app/data
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    command: celery -A app.workers.celery_app.celery_app worker --loglevel=info -Q aimip
+    environment: *backend-env
+    volumes:
+      - aimip_data:/app/data
+    depends_on:
+      backend: { condition: service_started }
+      redis: { condition: service_healthy }
+
+  beat:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    command: celery -A app.workers.celery_app.celery_app beat --loglevel=info
+    environment: *backend-env
+    depends_on:
+      redis: { condition: service_healthy }
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/nginx/proxy_common.conf:/etc/nginx/proxy_common.conf:ro
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  mongo_data:
+  redis_data:
+  aimip_data:

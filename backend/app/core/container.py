@@ -9,6 +9,8 @@ the Dependency Inversion Principle (see ``docs/05_Low_Level_Architecture.md``).
 
 from __future__ import annotations
 
+import asyncio
+
 from app.application.services.analytics_service import AnalyticsService
 from app.application.services.auth_service import AuthService
 from app.application.services.chat_service import ChatService
@@ -75,6 +77,7 @@ class Container:
         self._embedding_provider: EmbeddingProvider | None = None
         self._vector_store: VectorStore | None = None
         self._rag_engine: RagEngine | None = None
+        self._warmup_task: asyncio.Task[None] | None = None
 
     # ------------------------------------------------------------------ #
     # Lifecycle
@@ -121,6 +124,25 @@ class Container:
             await self.rag_engine.load()
         except Exception:
             logger.warning("container.rag.load_skipped")
+
+    async def warmup(self) -> None:
+        """Optionally warm the model + vector index in the background at boot.
+
+        Controlled by ``WARMUP_ON_STARTUP`` so production instances can trade a
+        slightly slower boot for a fast first request without blocking startup.
+        """
+        if not self.settings.warmup_on_startup:
+            return
+
+        async def _run() -> None:
+            try:
+                await asyncio.to_thread(self.inference_engine.warmup)
+                await self.rag_engine.load()
+                logger.info("container.warmup.done")
+            except Exception:
+                logger.warning("container.warmup.failed")
+
+        self._warmup_task = asyncio.create_task(_run())
 
     async def shutdown(self) -> None:
         """Close external connections. Called from the application lifespan."""
@@ -210,6 +232,7 @@ class Container:
         return AnalyticsService(
             analytics_repository=self.analytics_repository,
             prediction_repository=self.prediction_repository,
+            cache=self.cache,
         )
 
     @property

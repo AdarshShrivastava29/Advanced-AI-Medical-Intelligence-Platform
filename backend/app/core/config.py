@@ -50,6 +50,17 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     cors_origins: str = "http://localhost:5173"
 
+    # --- Production hardening ---
+    allowed_hosts: str = "*"  # comma-separated; "*" disables host filtering
+    rate_limit_enabled: bool = True
+    rate_limit_per_minute: int = 120
+    max_request_bytes: int = 15_728_640  # 15 MB hard cap on request bodies
+    gzip_min_bytes: int = 1024
+    metrics_enabled: bool = True
+    warmup_on_startup: bool = False  # eagerly warm model + vector index at boot
+    otel_enabled: bool = False
+    otel_exporter_endpoint: str = ""
+
     # --- Provider selectors ---
     llm_provider: Literal["openai", "gemini", "mock"] = "openai"
     embedding_provider: Literal["openai", "gemini", "sentence_transformer"] = "openai"
@@ -102,6 +113,11 @@ class Settings(BaseSettings):
     def cors_origin_list(self) -> list[str]:
         """CORS origins as a clean list."""
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def allowed_host_list(self) -> list[str]:
+        """Trusted hosts as a list (``['*']`` disables filtering)."""
+        return [h.strip() for h in self.allowed_hosts.split(",") if h.strip()] or ["*"]
 
     @property
     def allowed_image_type_set(self) -> set[str]:

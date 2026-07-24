@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Response, UploadFile, status
 
 from app.application.services.document_service import DocumentService
+from app.core.metrics import record_document_upload
 from app.domain.value_objects.role import Role
 from app.interface.dependencies import CurrentUser, get_document_service, require_role
 from app.interface.schemas.common import Page
@@ -38,6 +39,7 @@ async def upload_document(
         content_type=file.content_type or "",
         data=data,
     )
+    record_document_upload()
     return UploadAcceptedResponse(document=to_document_response(document))
 
 

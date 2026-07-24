@@ -52,6 +52,12 @@ export function AppShell() {
 
   return (
     <div className="app-gradient min-h-screen">
+      <a
+        href="#main"
+        className="sr-only rounded-lg bg-brand-500 px-3 py-2 text-white focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60]"
+      >
+        Skip to content
+      </a>
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-white/40 bg-white/40 p-4 backdrop-blur-glass dark:border-white/10 dark:bg-white/[0.02] lg:flex">
         <div className="px-2 py-2">
@@ -136,7 +142,7 @@ export function AppShell() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           <Outlet />
         </main>
       </div>

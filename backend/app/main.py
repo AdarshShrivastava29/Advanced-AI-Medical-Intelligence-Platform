@@ -12,21 +12,29 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app import __version__
 from app.core.config import Settings, get_settings
 from app.core.container import Container
 from app.core.logging import configure_logging, get_logger
+from app.core.metrics import render_metrics
 from app.interface.api.health import router as health_router
 from app.interface.api.v1 import api_v1_router
 from app.interface.middleware import (
+    MaxBodySizeMiddleware,
+    MetricsMiddleware,
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
     register_exception_handlers,
 )
+from app.interface.rate_limit import build_limiter, rate_limit_handler
 
 logger = get_logger(__name__)
 
@@ -44,6 +52,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     container: Container = app.state.container
     logger.info("app.startup.begin", version=__version__, env=container.settings.env.value)
     await container.startup()
+    await container.warmup()
     logger.info("app.startup.complete")
     try:
         yield
@@ -77,10 +86,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # Composition root — the only place adapters are wired to ports.
     app.state.container = Container(settings)
+    app.state.limiter = build_limiter(settings)
 
-    # Middleware (executed in reverse registration order per request).
-    app.add_middleware(SecurityHeadersMiddleware)
-    app.add_middleware(RequestContextMiddleware)
+    # Middleware. add_middleware registers inner-first, so the LAST added is the
+    # outermost per request: RequestContext (correlation id) wraps everything.
+    app.add_middleware(SecurityHeadersMiddleware)  # innermost
+    app.add_middleware(MetricsMiddleware)
+    app.add_middleware(SlowAPIMiddleware)
+    app.add_middleware(MaxBodySizeMiddleware, max_bytes=settings.max_request_bytes)
+    app.add_middleware(GZipMiddleware, minimum_size=settings.gzip_min_bytes)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
@@ -89,8 +103,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
         expose_headers=["X-Request-ID"],
     )
+    if settings.allowed_host_list != ["*"]:
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_host_list)
+    app.add_middleware(RequestContextMiddleware)  # outermost
 
     register_exception_handlers(app)
+    app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
     # Routers: health outside the versioned prefix, everything else under it.
     app.include_router(health_router)
@@ -121,6 +139,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "docs": "/docs",
             "health": "/health/ready",
         }
+
+    if settings.metrics_enabled:
+
+        @app.get("/metrics", tags=["ops"], summary="Prometheus metrics", include_in_schema=False)
+        async def metrics() -> Response:
+            """Expose Prometheus metrics in the text exposition format."""
+            payload, content_type = render_metrics()
+            return Response(content=payload, media_type=content_type)
 
     return app
 

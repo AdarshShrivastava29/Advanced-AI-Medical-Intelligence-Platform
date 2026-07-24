@@ -29,6 +29,12 @@ bcrypt==4.0.1
 # --- Logging ---
 structlog==24.4.0
 
+# --- Production hardening (Phase 6: security, observability, workers) ---
+slowapi==0.1.9
+prometheus-client==0.21.1
+celery==5.4.0
+redis==5.2.1
+
 # --- AI / ML (Phase 2: prediction pipeline, Grad-CAM). CPU wheels. ---
 torch==2.5.1
 torchvision==0.20.1

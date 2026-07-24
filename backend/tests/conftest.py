@@ -72,6 +72,8 @@ def test_settings() -> Settings:
         # Isolate inference from any ambient trained model/registry on disk so tests
         # are deterministic (they use the pretrained/random-init fallback).
         model_path="./data/__pytest_no_model__/model.pt",
+        # Disable rate limiting so repeated requests within a test never trip it.
+        rate_limit_enabled=False,
     )
 
 
@@ -235,6 +237,9 @@ class _StubContainer:
 
     async def startup(self) -> None:
         """No-op: tests do not connect to external services."""
+
+    async def warmup(self) -> None:
+        """No-op: tests do not warm the model/index."""
 
     async def shutdown(self) -> None:
         """No-op."""

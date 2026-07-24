@@ -1,187 +1,181 @@
 # Advanced AI Medical Intelligence Platform (AIMIP)
 
-> Explainable, LLM-assisted chest X-ray decision support — classify, explain,
-> report, and answer, behind enterprise-grade auth, architecture, and observability.
+> Explainable chest X-ray pneumonia screening, LLM-authored medical reports, and a grounded RAG knowledge assistant — as an enterprise, decision-support SaaS.
 
-[![build](https://img.shields.io/badge/build-CI-blue)](.github/workflows/ci.yml)
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](docs/34_Developer_Guide.md)
-[![node](https://img.shields.io/badge/node-20%2B-339933?logo=nodedotjs&logoColor=white)](docs/34_Developer_Guide.md)
-
-AIMIP is an enterprise AI healthcare SaaS for clinical **decision-support** (it is
-**not** a medical device). It classifies chest X-rays for pneumonia, explains the
-result with Grad-CAM, drafts an LLM medical report, and answers grounded medical
-questions through a RAG knowledge assistant — all behind JWT auth, persisted in
-MongoDB, with a premium React frontend, analytics, containerization, CI, and
-observability.
-
-> **Clinical disclaimer.** AIMIP outputs are **informational, not a diagnosis**. A
-> licensed clinician must review all results. No PHI should be uploaded without
-> consent. The platform is **not** FDA/CE cleared.
-
----
-
-## Table of contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Tech stack](#tech-stack)
-- [Screenshots](#screenshots)
-- [Quickstart](#quickstart)
-- [Environment configuration](#environment-configuration)
-- [AI / ML capabilities](#ai--ml-capabilities)
-- [API summary](#api-summary)
-- [Docker & deployment](#docker--deployment)
-- [Project structure](#project-structure)
-- [Documentation index](#documentation-index)
-- [Roadmap](#roadmap)
-- [Disclaimer](#disclaimer)
-- [License](#license)
+[![build](https://img.shields.io/badge/build-passing-brightgreen)](.github/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](backend/requirements.txt)
+[![node](https://img.shields.io/badge/node-20%2B-339933?logo=node.js&logoColor=white)](frontend/package.json)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
 
 ---
 
 ## Overview
 
-The platform delivers one complete clinical pipeline —
-**upload → classify → Grad-CAM → LLM report → persist → review** — and a second
-knowledge surface — **ingest medical PDFs → embed → retrieve → grounded answer
-with citations**. It is built on a Clean / Hexagonal (Ports & Adapters)
-architecture so that every external dependency (LLM, embeddings, vector store,
-model architecture, cache, task queue, auth, storage) is a swappable adapter
-chosen at startup from environment variables. Business logic depends only on
-ports; a provider change is a `.env` change, not a refactor.
+**AIMIP** is a full-stack, production-hardened platform that turns a chest X-ray upload into an
+explainable pipeline: a PyTorch classifier predicts `NORMAL` vs `PNEUMONIA`, **Grad-CAM** renders
+the visual evidence, an **LLM** drafts a structured medical report, and a **retrieval-augmented
+knowledge assistant** answers clinical-knowledge questions strictly from a curated corpus of vetted
+medical PDFs. Everything sits behind JWT auth with role-based access, is persisted in MongoDB, and
+ships with a premium React 19 frontend, analytics, Docker packaging, CI, and observability.
 
-See the [Project Vision](docs/01_Project_Vision.md) and
-[Software Requirements Specification](docs/02_Software_Requirements_Specification.md)
-for scope, success metrics, and non-functional targets.
+The codebase was built across six phases — **foundation → prediction pipeline (Grad-CAM + LLM
+reports) → premium React frontend → RAG knowledge assistant → model training pipeline → production
+hardening** (Docker / CI / security / observability) — on a Clean / Hexagonal architecture whose
+providers are all swappable through environment variables.
+
+> **Medical disclaimer.** AIMIP is a **clinical decision-support** platform, **not a medical
+> device**. All outputs (predictions, Grad-CAM overlays, reports, chat answers) are **informational,
+> not a diagnosis**; a licensed clinician must review every result. No PHI should be uploaded without
+> consent. The platform is **not FDA/CE cleared**.
 
 ---
 
 ## Features
 
-- **Pneumonia classification** — chest X-ray → `NORMAL` / `PNEUMONIA` with
-  softmax confidence and full probabilities, on `densenet121` (default) or
-  `efficientnet_b0`.
-- **Out-of-distribution guard** — non-chest-X-ray uploads are flagged
-  (`ood_flag`) and a confident label is suppressed.
-- **Explainable AI (Grad-CAM)** — original, heatmap, and overlay images served as
-  URLs, hooked on the classifier's target layer.
-- **LLM medical report** — structured Markdown report (summary, findings, possible
-  condition, medical explanation, recommendations, risk level, disclaimer) via a
-  provider-agnostic `AIProvider`.
-- **RAG knowledge assistant** — ingest WHO/NIH/research PDFs, hybrid retrieval
-  (dense + BM25) with reranking, grounded answers with citations, and a refusal
-  gate for out-of-scope questions.
-- **Auth & RBAC** — JWT access/refresh with rotation, lockout, and roles
-  (`user` / `doctor` / `admin`).
-- **Analytics** — overview, trends, disease distribution, confidence distribution,
-  and recent-activity dashboards.
-- **Enterprise foundations** — RFC 7807 errors, structured logging, Prometheus
-  metrics, rate limiting, audit logging, 12-factor config, and CI.
+- **AI prediction + Explainable AI (Grad-CAM).** Chest X-ray classification (`NORMAL` /
+  `PNEUMONIA`) with softmax confidence and full class probabilities, run in a threadpool so it never
+  blocks the event loop. An **OOD guard** flags non-chest-X-ray uploads. Grad-CAM produces original,
+  heatmap, and overlay PNGs served as URLs.
+- **LLM medical reports.** A Builder assembles a structured report — `summary`, `findings`,
+  `possible_condition`, `medical_explanation`, `recommendations`, `risk_level`, `disclaimer` — as
+  Markdown, generated through the `AIProvider` port and regenerable on demand.
+- **RAG knowledge assistant.** Ingest medical PDFs (WHO / NIH / research), then ask grounded
+  questions. Hybrid retrieval (dense + BM25 → rerank) yields **cited** answers and **refuses** when
+  the top score falls below `RAG_MIN_SCORE` ("insufficient context") — it never answers ungrounded.
+- **Analytics.** Overview KPIs, prediction trends, disease distribution, confidence distribution,
+  and recent activity — scoped to the caller's data for `user`, platform-wide for `doctor`/`admin`.
+- **Auth & RBAC.** JWT access/refresh with rotation and reuse detection, account lockout, and three
+  roles (`user`, `doctor`, `admin`) enforced by a `require_role(...)` dependency; privileged access
+  to PHI is written to an append-only audit log.
+- **Provider abstraction.** LLM, embeddings, vector store, model architecture, auth, storage, cache,
+  and task queue are all **ports** selected by ENV — swap OpenAI↔Gemini, faiss↔chroma, memory↔redis,
+  in-process↔celery with a `.env` change and no code edits.
+- **Model training pipeline.** Transfer-learning trainer (DenseNet-121 / EfficientNet-B0) with class
+  weights, early stopping, full evaluation, artifacts, and a model registry the inference engine
+  auto-loads from.
+- **Observability & security.** Structured JSON logs, Prometheus `/metrics`, health probes, request
+  IDs, rate limiting, gzip, request-size caps, security headers, CORS, and trusted-host filtering.
 
 ---
 
 ## Architecture
 
-Clean / Hexagonal (Ports & Adapters). Dependency direction:
-`domain ← application ← infrastructure ← interface`.
-
 ```mermaid
 flowchart TB
-    subgraph Client
-      FE[React 19 SPA<br/>Vite · Tailwind · TanStack Query · Zustand]
-    end
+  user([Browser])
 
-    subgraph Interface["interface (API / adapters in)"]
-      API[FastAPI /api/v1 routers<br/>auth · predict · history · reports · chat · documents · analytics · users · settings · health]
-      MW[middleware<br/>request_id · timing · rate_limit · error_handler · security_headers]
-    end
+  subgraph edge["Reverse proxy"]
+    NG[nginx<br/>serves frontend + proxies /api]
+  end
 
-    subgraph Application["application (use cases)"]
-      SVC[Services<br/>Auth · Prediction · Report · Rag · Document · Analytics · User]
-    end
+  subgraph app["Application"]
+    FE[React 19 SPA<br/>Vite build]
+    API[FastAPI backend<br/>app.main:app]
+    WK[Celery worker<br/>ingest · train · report_regen]
+    BEAT[Celery beat<br/>scheduler]
+  end
 
-    subgraph Domain["domain (entities + ports)"]
-      PORTS[Ports ABCs<br/>AIProvider · EmbeddingProvider · VectorStore · Classifier<br/>AuthProvider · StorageProvider · CacheProvider · TaskQueue]
-    end
+  subgraph data["Stateful services"]
+    MG[(MongoDB)]
+    RD[(Redis<br/>cache + broker)]
+    VS[(FAISS vector index)]
+  end
 
-    subgraph Infrastructure["infrastructure (adapters out)"]
-      LLM[LLM<br/>openai · gemini · mock]
-      EMB[Embeddings<br/>openai · gemini · sentence_transformer]
-      VDB[Vector store<br/>faiss · chroma · pinecone]
-      ML[ML<br/>classifier · inference · gradcam · training]
-      CACHE[Cache<br/>memory · redis]
-      TQ[Task queue<br/>inprocess · celery]
-      DB[(MongoDB<br/>DB_NAME=aimip)]
-    end
+  subgraph providers["External providers (ENV-selected)"]
+    LLM[LLM: openai · gemini · mock]
+    EMB[Embeddings: openai · gemini · sentence_transformer]
+  end
 
-    FE -->|Axios · Bearer JWT| API
-    API --> MW --> SVC
-    SVC --> PORTS
-    PORTS -.selected by ENV factories.-> LLM & EMB & VDB & ML & CACHE & TQ
-    SVC --> DB
+  user --> NG
+  NG --> FE
+  NG --> API
+  API --> MG
+  API --> RD
+  API --> VS
+  API --> LLM
+  API --> EMB
+  API -. enqueue .-> RD
+  RD --> WK
+  BEAT --> RD
+  WK --> MG
+  WK --> VS
+  WK --> EMB
 ```
 
-Full detail: [System Architecture](docs/03_System_Architecture.md) ·
-[Design Patterns](docs/09_Design_Patterns.md) ·
-[Ports & Adapters](docs/10_Ports_And_Adapters.md).
+AIMIP is built on **Clean / Hexagonal (Ports & Adapters)** architecture with the dependency
+direction `domain ← application ← infrastructure ← interface`. Business logic (application/domain)
+depends only on **ports** — abstract base classes — and **never calls a vendor SDK directly**.
+Concrete **adapters** are chosen at startup by **factories** that read ENV, wired once in the
+composition root (`core/container.py`) and injected via FastAPI `Depends`. This makes every provider
+a plugin selected purely by configuration:
+
+| Port | ENV selector | Adapters |
+|------|--------------|----------|
+| `AIProvider` | `LLM_PROVIDER` | `openai` · `gemini` · `mock` |
+| `EmbeddingProvider` | `EMBEDDING_PROVIDER` | `openai` · `gemini` · `sentence_transformer` |
+| `VectorStore` | `VECTOR_DB` | `faiss` · `chroma` · `pinecone` |
+| `Classifier` | `MODEL_ARCH` | `densenet121` · `efficientnet_b0` |
+| `AuthProvider` | `AUTH_PROVIDER` | `jwt` |
+| `StorageProvider` | `STORAGE_PROVIDER` | `mongodb` |
+| `CacheProvider` | `CACHE_PROVIDER` | `memory` · `redis` |
+| `TaskQueue` | `TASK_QUEUE` | `inprocess` · `celery` |
+
+The full design is documented in the [`docs/`](docs/) suite — see
+[System Architecture](docs/03_System_Architecture.md), [Backend Architecture](docs/07_Backend_Architecture.md),
+[AI Providers](docs/16_AI_Providers.md), and [RAG Architecture](docs/13_RAG_Architecture.md).
 
 ---
 
 ## Tech stack
 
-**Backend** — Python 3.11+ (target 3.11, **not** 3.12), FastAPI, Pydantic v2 +
-pydantic-settings, Motor (async MongoDB), PyTorch + torchvision, Pillow,
-opencv-python-headless, NumPy, scikit-learn, PyMuPDF (fitz),
-sentence-transformers, faiss-cpu, chromadb, openai, google-generativeai,
-python-jose[cryptography], passlib[bcrypt], python-multipart, uvicorn[standard],
-redis, celery, prometheus-client, structlog, httpx; pytest, pytest-asyncio, ruff,
-mypy. *(TensorFlow and LlamaIndex are intentionally not used.)*
+**Backend** — Python 3.11+, FastAPI 0.115, Uvicorn, Pydantic v2 + pydantic-settings, Motor / PyMongo
+(async MongoDB), PyTorch 2.5 + torchvision, Pillow, OpenCV (headless), NumPy, scikit-learn, PyMuPDF,
+sentence-transformers, faiss-cpu, rank-bm25, chromadb, python-jose + passlib[bcrypt], SlowAPI,
+Celery 5 + Redis, prometheus-client, structlog, httpx. Tooling: pytest + pytest-asyncio, ruff, mypy.
 
-**Frontend** — React 19, Vite, TypeScript, TailwindCSS, Framer Motion, TanStack
-Query, Zustand, React Hook Form + Zod, Axios, React Router v6, Recharts,
-Lucide-react, ESLint + Prettier, Vitest + React Testing Library.
+**Frontend** — React 19, Vite 6, TypeScript 5.7, TailwindCSS 3, Framer Motion, TanStack Query
+(server state), Zustand (UI state), React Hook Form + Zod, Axios, React Router v6, Recharts,
+Lucide-react, react-markdown + remark-gfm. Tooling: ESLint, Vitest + React Testing Library.
 
-**Infra** — MongoDB Atlas, Redis, Docker + docker-compose, nginx, GitHub Actions.
-*(Docker is not installed on the current dev machine; container artifacts are
-authored and run later.)*
+**Infrastructure** — MongoDB 7, Redis 7, Docker + docker-compose, nginx 1.27 (frontend serve +
+reverse proxy), GitHub Actions CI.
 
 ---
 
 ## Screenshots
 
-Placeholder references — replace with captured images under `docs/assets/`.
-
 | View | Image |
 |------|-------|
-| Dashboard | `docs/assets/screenshot-dashboard.png` |
-| Prediction + Grad-CAM | `docs/assets/screenshot-prediction.png` |
-| Generated report | `docs/assets/screenshot-report.png` |
-| Knowledge Assistant (RAG) | `docs/assets/screenshot-chat.png` |
-| Analytics | `docs/assets/screenshot-analytics.png` |
+| Dashboard | `docs/assets/dashboard.png` |
+| Prediction + Grad-CAM | `docs/assets/prediction.png` |
+| Knowledge Assistant | `docs/assets/assistant.png` |
+| Analytics | `docs/assets/analytics.png` |
+| End-to-end demo | `docs/assets/demo.gif` |
 
-![Dashboard](docs/assets/screenshot-dashboard.png)
-
-See [Frontend Design System](docs/32_Frontend_Design_System.md) for the visual
-language (medical palette, glassmorphism, dark mode, WCAG 2.1 AA).
+> Screenshots/GIFs: capture from the running app and place under `docs/assets/`. The paths above are
+> references to be filled in — no image files are bundled with this repository yet.
 
 ---
 
-## Quickstart
+## Quick start (local dev)
 
-Prerequisites: Python **3.11+**, Node **20+/npm**, MongoDB, and (optionally) Redis.
-Full walkthrough: [Developer Guide](docs/34_Developer_Guide.md).
+Prerequisites: Python 3.11+, Node.js 20+. MongoDB and Redis are recommended; without them the app
+runs in a **degraded mode** — the default selectors (`CACHE_PROVIDER=memory`, `TASK_QUEUE=inprocess`,
+`LLM_PROVIDER=mock`, in-memory/pretrained fallbacks) let the platform boot and serve without external
+services or a trained model.
 
 **Backend**
 
 ```bash
 cd backend
 python -m venv .venv
-source .venv/Scripts/activate      # Windows PowerShell: .\.venv\Scripts\Activate.ps1
+# Windows: .venv\Scripts\activate   |   macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env               # PowerShell: Copy-Item .env.example .env
-uvicorn app.main:app --reload      # http://localhost:8000  (/docs, /health/live)
+cp .env.example .env                 # then edit secrets/selectors
+uvicorn app.main:app --reload        # http://localhost:8000  (Swagger at /docs)
 ```
 
 **Frontend**
@@ -189,207 +183,277 @@ uvicorn app.main:app --reload      # http://localhost:8000  (/docs, /health/live
 ```bash
 cd frontend
 npm install
-cp .env.example .env               # PowerShell: Copy-Item .env.example .env
-npm run dev                        # http://localhost:5173
+cp .env.example .env                 # VITE_API_BASE_URL=http://localhost:8000/api/v1
+npm run dev                          # http://localhost:5173
 ```
 
-**Seed, ingest, train, test**
+---
+
+## Docker (one command)
+
+Prerequisite: Docker (with Compose) installed.
+
+```bash
+cp .env.example .env                 # then set a strong JWT_SECRET (compose refuses to start without it)
+docker compose up --build            # or: make up
+# AIMIP is served at http://localhost
+```
+
+The stack (`docker-compose.yml`) starts these services:
+
+| Service | Image / build | Role |
+|---------|---------------|------|
+| `nginx` | nginx:1.27-alpine | Reverse proxy on `:80`; serves the SPA and proxies `/api` |
+| `frontend` | `./frontend` | React build (static assets) |
+| `backend` | `./backend` | FastAPI API |
+| `worker` | `./backend` | Celery worker (queue `aimip`) |
+| `beat` | `./backend` | Celery beat scheduler |
+| `mongo` | mongo:7 | Application database |
+| `redis` | redis:7-alpine | Cache + Celery broker/result backend |
+
+In the Docker profile the defaults favour zero external keys: `LLM_PROVIDER=mock`,
+`EMBEDDING_PROVIDER=sentence_transformer`, `CACHE_PROVIDER=redis`, `TASK_QUEUE=celery`, `VECTOR_DB=faiss`.
+Set `OPENAI_API_KEY`/`GEMINI_API_KEY` and switch `LLM_PROVIDER`/`EMBEDDING_PROVIDER` for real models.
+
+---
+
+## Model training guide
+
+Training is optional — the inference engine falls back to a pretrained backbone so the app works
+without a trained checkpoint or the dataset. The pipeline is driven by
+[`backend/scripts/train.py`](backend/scripts/train.py) and
+[`backend/configs/training.yaml`](backend/configs/training.yaml).
 
 ```bash
 cd backend
-python scripts/seed_db.py          # baseline data + indexes + admin
-python scripts/ingest_docs.py      # ingest PDFs from PDF_PATH into the RAG index
-python scripts/train.py            # optional; pretrained-inference fallback otherwise
-pytest --cov=app                   # unit + integration + contract, coverage >= 80%
+
+# Verify the whole pipeline end-to-end with a generated dataset (no download, CPU-friendly)
+python scripts/train.py --synthetic --arch densenet121 --epochs 4
+
+# Train on the real Kaggle dataset (place it under data/datasets/chest_xray/{train,val,test}/{NORMAL,PNEUMONIA})
+python scripts/train.py --config configs/training.yaml
+
+# Same pipeline, alternate architecture — one flag, no code change
+python scripts/train.py --config configs/training.yaml --arch efficientnet_b0
+
+# Best-effort dataset download via kagglehub (requires Kaggle credentials)
+python scripts/train.py --download
 ```
 
-The defaults boot fully offline (`LLM_PROVIDER=mock`,
-`EMBEDDING_PROVIDER=sentence_transformer`, `CACHE_PROVIDER=memory`,
-`TASK_QUEUE=inprocess`). Hitting a wall? See
-[Troubleshooting](docs/36_Troubleshooting.md).
+The dataset is Kaggle "Chest X-Ray Images (Pneumonia)" (`paultimothymooney/chest-xray-pneumonia`).
+Training uses transfer learning (freeze backbone → fine-tune head → unfreeze), AdamW + weighted
+cross-entropy, cosine LR schedule, gradient clipping, and early stopping, then evaluates on a
+held-out split (accuracy, precision, recall, F1, ROC-AUC, confusion matrix). Each run writes
+artifacts under `data/training/` and appends to the **model registry** (`data/weights/registry.json`).
+The inference engine **auto-loads** the newest **approved** registry entry for the active
+`MODEL_ARCH` — so training a new model upgrades serving with no code change. See
+[Model Training](docs/10_Model_Training.md) and [Model Inference](docs/11_Model_Inference.md).
 
 ---
 
-## Environment configuration
+## RAG guide
 
-Configuration is 12-factor and **fails fast** — e.g. `LLM_PROVIDER=openai` with an
-empty `OPENAI_API_KEY` raises at startup. Selected essentials:
+1. **Upload PDFs** on the **Documents** page (or `POST /documents`, admin-only). Ingestion — load
+   (PyMuPDF) → clean → chunk → embed → index — runs asynchronously; poll `GET /documents` for
+   `status` (`indexed`/`failed`) and `chunk_count`.
+2. **Ask questions** in the **Knowledge Assistant** (or `POST /chat`). Answers are **grounded** with
+   `citations[]` (`document_id`, `chunk_id`, `score`) and the assistant **refuses** with an
+   "insufficient context" response when retrieval scores fall below `RAG_MIN_SCORE`.
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `ENV` | `development` | `development` / `staging` / `production` |
-| `CORS_ORIGINS` | `http://localhost:5173` | Allowed frontend origins |
-| `API_V1_PREFIX` | `/api/v1` | Versioned API prefix |
-| `LLM_PROVIDER` | `openai` | `openai` / `gemini` / `mock` |
-| `EMBEDDING_PROVIDER` | `openai` | `openai` / `gemini` / `sentence_transformer` |
-| `VECTOR_DB` | `faiss` | `faiss` / `chroma` / `pinecone` |
-| `MODEL_ARCH` | `densenet121` | `densenet121` / `efficientnet_b0` |
-| `CACHE_PROVIDER` | `memory` | `memory` / `redis` |
-| `TASK_QUEUE` | `inprocess` | `inprocess` / `celery` |
-| `MONGODB_URI` / `DB_NAME` | `mongodb://localhost:27017` / `aimip` | Primary datastore |
-| `REDIS_URL` | `redis://localhost:6379/0` | Cache / Celery broker |
-| `JWT_SECRET` / `ACCESS_TOKEN_EXPIRE_MINUTES` | `change-me` / `30` | Auth |
-| `MODEL_PATH` | `./data/weights/model.pt` | Classifier checkpoint |
-| `MAX_UPLOAD_SIZE` / `ALLOWED_IMAGE_TYPES` | `10485760` / `image/png,image/jpeg` | Upload guards |
-| `RAG_TOP_K` / `RAG_MIN_SCORE` | `5` / `0.2` | Retrieval & refusal gate |
-| `VITE_API_BASE_URL` | `http://localhost:8000/api/v1` | Frontend → API base |
-
-Full reference: [Environment Configuration](docs/31_Environment_Configuration.md).
+Chunking and retrieval are tuned via `RAG_TOP_K`, `RAG_CHUNK_SIZE`, `RAG_CHUNK_OVERLAP`, and
+`RAG_MIN_SCORE`. Full details in [RAG Architecture](docs/13_RAG_Architecture.md),
+[Vector Database](docs/14_Vector_Database.md), and [Embedding System](docs/15_Embedding_System.md).
 
 ---
 
-## AI / ML capabilities
+## API guide
 
-- **Model & dataset** — torchvision `densenet121` (default, ImageNet-pretrained)
-  with a 2-class `[NORMAL, PNEUMONIA]` head; alt `efficientnet_b0`. Input
-  224×224, ImageNet mean/std. Trained on the Kaggle **"Chest X-Ray Images
-  (Pneumonia)"** dataset (Kermany et al.). See
-  [Machine Learning Pipeline](docs/12_Machine_Learning_Pipeline.md).
-- **Training** — transfer learning (freeze → fine-tune head → optional unfreeze),
-  AdamW, class-weighted cross-entropy, early stopping; metrics accuracy,
-  precision, recall, F1, AUROC, confusion matrix; checkpoint → `MODEL_PATH`.
-  Optional — a pretrained-inference fallback lets the app run without training.
-- **Inference** — runs in a threadpool executor (never blocks the event loop);
-  returns predicted class, confidence, and full probabilities, with an **OOD
-  guard**.
-- **Grad-CAM** — forward/backward hooks on the classifier target layer; original,
-  heatmap, and overlay PNGs under `GRADCAM_PATH`, served as URLs. See
-  [Explainability (Grad-CAM)](docs/13_Explainability_GradCAM.md).
-- **RAG** — PyMuPDF load → clean → chunk → embed → vector store → hybrid retrieve
-  → rerank → grounded answer with citations; refuses below `RAG_MIN_SCORE`. See
-  [RAG Knowledge Assistant](docs/15_RAG_Knowledge_Assistant.md).
-- **LLM report** — a Builder assembles the structured report through `AIProvider`.
-  See [Report Generation](docs/14_Report_Generation.md).
-
----
-
-## API summary
-
-Versioned under `/api/v1`. Errors use RFC 7807
-`{type, title, status, detail, instance, errors?}`; lists use
-`{items, page, size, total, pages}`; auth via `Authorization: Bearer <access>`.
-Full contract: [API Design](docs/18_API_Design.md).
+All application endpoints are versioned under `/api/v1`; operational endpoints are unprefixed.
+Errors use RFC 7807 (`application/problem+json`); collections use the
+`{items, page, size, total, pages}` envelope. Full contract in [API Design](docs/18_API_Design.md).
 
 | Area | Endpoints |
 |------|-----------|
-| **Auth** | `POST /auth/register` · `POST /auth/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` |
-| **Predict** | `POST /predict` (multipart `file`, `Idempotency-Key`) · `GET /predict/{id}` |
-| **History** | `GET /history?page&size&from&to` |
-| **Reports** | `GET /reports/{prediction_id}` · `POST /reports/{prediction_id}/regenerate` |
-| **Chat / RAG** | `POST /chat` · `GET /chat/sessions` · `GET /chat/sessions/{id}` |
-| **Documents** | `POST /documents` · `GET /documents` · `DELETE /documents/{id}` |
-| **Analytics** | `GET /analytics/overview` · `/analytics/trends?interval=day\|week` · `/analytics/disease-distribution` · `/analytics/confidence-distribution` · `/analytics/recent-activity` |
-| **Users (admin)** | `GET /users` · `GET /users/{id}` · `PATCH /users/{id}` · `DELETE /users/{id}` |
-| **Settings** | `GET /settings` · `PATCH /settings` |
-| **Ops (no prefix)** | `GET /health/live` · `GET /health/ready` · `GET /metrics` · `GET /docs` |
+| Auth | `POST /auth/register` · `POST /auth/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` |
+| Predict | `POST /predict` (multipart `file`, `Idempotency-Key`) · `GET /predict/{id}` |
+| History | `GET /history?page&size&from&to` |
+| Reports | `GET /reports/{prediction_id}` · `POST /reports/{prediction_id}/regenerate` |
+| Chat / RAG | `POST /chat` · `GET /chat/sessions` · `GET /chat/sessions/{id}` |
+| Documents | `POST /documents` · `GET /documents` · `DELETE /documents/{id}` |
+| Analytics | `GET /analytics/overview` · `/trends` · `/disease-distribution` · `/confidence-distribution` · `/recent-activity` |
+| Users (admin) | `GET /users` · `GET /users/{id}` · `PATCH /users/{id}` · `DELETE /users/{id}` |
+| Settings | `GET /settings` · `PATCH /settings` |
+| Ops | `GET /health/live` · `GET /health/ready` · `GET /metrics` · `GET /docs` |
 
-Roles: `user`, `doctor`, `admin` — enforced via `require_role(...)`. See
-[Authorization & RBAC](docs/20_Authorization_RBAC.md).
+Interactive Swagger UI is at **`/docs`** (OpenAPI 3.1, also served as `/openapi.json`); Prometheus
+metrics are at **`/metrics`**.
 
 ---
 
-## Docker & deployment
+## Environment variables
 
-Docker is **optional** and not installed on the current dev machine; the stack
-runs natively for development. The container path — `backend/Dockerfile`,
-`frontend/Dockerfile`, `nginx.conf`, and `docker-compose.yml` (api, frontend,
-mongo, redis) — is authored and validated in CI, then run in the target
-environment where nginx serves the SPA and reverse-proxies `/api/v1`.
+Copy `backend/.env.example` (per-service, canonical) and/or the root `.env.example` (compose secrets)
+and fill in values. Config **fails fast** — e.g. `LLM_PROVIDER=openai` with an empty `OPENAI_API_KEY`
+raises at startup. Key variables:
 
-- [Containerization (Docker)](docs/28_Containerization_Docker.md)
-- [Deployment & Infrastructure](docs/29_Deployment_And_Infrastructure.md)
-- [CI/CD Pipeline](docs/27_CI_CD_Pipeline.md)
+| Variable | Purpose | Example / default |
+|----------|---------|-------------------|
+| `LLM_PROVIDER` | LLM adapter | `openai` \| `gemini` \| `mock` |
+| `EMBEDDING_PROVIDER` | Embedding adapter | `openai` \| `gemini` \| `sentence_transformer` |
+| `VECTOR_DB` | Vector store | `faiss` \| `chroma` \| `pinecone` |
+| `MODEL_ARCH` | Classifier architecture | `densenet121` \| `efficientnet_b0` |
+| `AUTH_PROVIDER` / `STORAGE_PROVIDER` | Auth / storage adapters | `jwt` / `mongodb` |
+| `CACHE_PROVIDER` / `TASK_QUEUE` | Cache / job adapters | `memory`\|`redis` / `inprocess`\|`celery` |
+| `OPENAI_API_KEY` / `GEMINI_API_KEY` | Provider keys | (secret) |
+| `LLM_MODEL` / `EMBEDDING_MODEL` | Model ids | `gpt-4o-mini` / `text-embedding-3-small` |
+| `MONGODB_URI` / `DB_NAME` / `REDIS_URL` | Data stores | `mongodb://localhost:27017` / `aimip` / `redis://localhost:6379/0` |
+| `JWT_SECRET` | Token signing secret (**required**) | long random string |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` / `REFRESH_TOKEN_EXPIRE_DAYS` | Token lifetimes | `30` / `7` |
+| `CORS_ORIGINS` / `ALLOWED_HOSTS` | CORS + trusted hosts | `http://localhost` / `*` |
+| `RATE_LIMIT_ENABLED` / `RATE_LIMIT_PER_MINUTE` / `MAX_REQUEST_BYTES` | Hardening | `true` / `120` / `15728640` |
+| `METRICS_ENABLED` / `WARMUP_ON_STARTUP` / `OTEL_ENABLED` | Observability | `true` / `false` / `false` |
+| `RAG_TOP_K` / `RAG_CHUNK_SIZE` / `RAG_CHUNK_OVERLAP` / `RAG_MIN_SCORE` | RAG tuning | `5` / `800` / `120` / `0.2` |
+| `VITE_API_BASE_URL` | Frontend → API base | `http://localhost:8000/api/v1` |
+
+See the full annotated list in [`backend/.env.example`](backend/.env.example) and
+[Environment Configuration](docs/31_Environment_Configuration.md).
+
+---
+
+## Deployment
+
+AIMIP is **12-factor**: all config is environment-driven and the API is stateless and
+horizontally scalable. For production:
+
+- Set a **strong `JWT_SECRET`** and point `MONGODB_URI` / `REDIS_URL` at managed instances.
+- Lock down `ALLOWED_HOSTS` and `CORS_ORIGINS` to real hostnames.
+- Provide provider keys and select real adapters (`LLM_PROVIDER`, `EMBEDDING_PROVIDER`,
+  `CACHE_PROVIDER=redis`, `TASK_QUEUE=celery`).
+- **Scale** the `backend` (API) and `worker` (Celery) services independently; the `nginx` reverse
+  proxy fronts everything.
+
+Runs on any Docker host: **Render**, **Railway**, **Fly.io**, **AWS ECS**, **DigitalOcean App
+Platform** — paired with **MongoDB Atlas** and a **managed Redis**. Details in
+[Deployment](docs/28_Deployment.md) and [Docker](docs/29_Docker.md).
 
 ---
 
 ## Project structure
 
-Monorepo: `backend/` (Clean/Hexagonal FastAPI app + ML + workers + scripts),
-`frontend/` (React 19 SPA), `docs/` (numbered docs 00–37), `data/` (gitignored
-uploads/gradcam/vector_index/pdfs/weights), plus `docker-compose.yml`,
-`.github/workflows/ci.yml`, and root project files.
-
 ```
 AI_Prediction_System/
-├── backend/    app/{core,domain,application,infrastructure,interface,workers} · tests · scripts
-├── frontend/   src/{app,pages,features,components,hooks,lib,store,styles,types}
-├── docs/       00–37 numbered docs
-├── data/       uploads/ gradcam/ vector_index/ pdfs/ weights/   (gitignored)
-├── docker-compose.yml · .github/workflows/ci.yml
-└── README.md · CHANGELOG.md · CONTRIBUTING.md · LICENSE · .gitignore
+├── backend/
+│   ├── app/
+│   │   ├── core/            # config, logging, security, exceptions, container (composition root)
+│   │   ├── domain/          # entities, value objects, ports (ABCs)
+│   │   ├── application/     # services + DTOs (business logic; depends only on ports)
+│   │   ├── infrastructure/  # db, providers/{llm,embeddings,vector_db,cache,task_queue},
+│   │   │                    #   ml/{classifier,inference,gradcam,training}, rag, auth, storage
+│   │   ├── interface/       # api/v1 routers, schemas, middleware, dependencies
+│   │   └── workers/         # celery app + tasks
+│   ├── configs/             # training.yaml
+│   ├── scripts/             # train.py, seed_db.py, ingest_docs.py
+│   ├── tests/{unit,integration,contract}/
+│   ├── requirements.txt · Dockerfile · .env.example
+├── frontend/
+│   ├── src/                 # app, pages, features, components, hooks, lib, store, styles, types
+│   ├── package.json · vite.config.ts · nginx.conf · Dockerfile · .env.example
+├── docs/                    # 38 numbered docs (00–37) + _CANON.md
+├── deploy/nginx/            # nginx.conf + proxy_common.conf
+├── data/                    # gitignored: uploads, gradcam, vector_index, pdfs, weights, datasets
+├── docker-compose.yml · Makefile · LICENSE · README.md
 ```
-
-Full map: [Project Structure](docs/06_Project_Structure.md).
 
 ---
 
-## Documentation index
+## Testing
 
-All 38 numbered documents (00–37) live in [`docs/`](docs/).
+Backend and frontend gates mirror CI and run together via `make test`.
 
-| # | Document |
-|---|----------|
-| 00 | [Project Roadmap](docs/00_Project_Roadmap.md) |
-| 01 | [Project Vision](docs/01_Project_Vision.md) |
-| 02 | [Software Requirements Specification](docs/02_Software_Requirements_Specification.md) |
-| 03 | [System Architecture](docs/03_System_Architecture.md) |
-| 04 | [Architecture Decision Records](docs/04_Architecture_Decision_Records.md) |
-| 05 | [Domain Model](docs/05_Domain_Model.md) |
-| 06 | [Project Structure](docs/06_Project_Structure.md) |
-| 07 | [Backend Architecture](docs/07_Backend_Architecture.md) |
-| 08 | [Frontend Architecture](docs/08_Frontend_Architecture.md) |
-| 09 | [Design Patterns](docs/09_Design_Patterns.md) |
-| 10 | [Ports & Adapters](docs/10_Ports_And_Adapters.md) |
-| 11 | [Provider Adapters](docs/11_Provider_Adapters.md) |
-| 12 | [Machine Learning Pipeline](docs/12_Machine_Learning_Pipeline.md) |
-| 13 | [Explainability (Grad-CAM)](docs/13_Explainability_GradCAM.md) |
-| 14 | [Report Generation](docs/14_Report_Generation.md) |
-| 15 | [RAG Knowledge Assistant](docs/15_RAG_Knowledge_Assistant.md) |
-| 16 | [Data Management](docs/16_Data_Management.md) |
-| 17 | [Database Design](docs/17_Database_Design.md) |
-| 18 | [API Design](docs/18_API_Design.md) |
-| 19 | [Authentication (JWT)](docs/19_Authentication_JWT.md) |
-| 20 | [Authorization & RBAC](docs/20_Authorization_RBAC.md) |
-| 21 | [Security Design](docs/21_Security_Design.md) |
-| 22 | [Error Handling & Logging](docs/22_Error_Handling_And_Logging.md) |
-| 23 | [Observability](docs/23_Observability.md) |
-| 24 | [Caching Strategy](docs/24_Caching_Strategy.md) |
-| 25 | [Task Queue & Workers](docs/25_Task_Queue_And_Workers.md) |
-| 26 | [Testing Strategy](docs/26_Testing_Strategy.md) |
-| 27 | [CI/CD Pipeline](docs/27_CI_CD_Pipeline.md) |
-| 28 | [Containerization (Docker)](docs/28_Containerization_Docker.md) |
-| 29 | [Deployment & Infrastructure](docs/29_Deployment_And_Infrastructure.md) |
-| 30 | [Performance & Scalability](docs/30_Performance_And_Scalability.md) |
-| 31 | [Environment Configuration](docs/31_Environment_Configuration.md) |
-| 32 | [Frontend Design System](docs/32_Frontend_Design_System.md) |
-| 33 | [Project Report](docs/33_Project_Report.md) |
-| 34 | [Developer Guide](docs/34_Developer_Guide.md) |
-| 35 | [Contribution Guide](docs/35_Contribution_Guide.md) |
-| 36 | [Troubleshooting](docs/36_Troubleshooting.md) |
-| 37 | [Future Roadmap](docs/37_Future_Roadmap.md) |
+```bash
+# Backend (from backend/)
+pytest -q            # 126 tests (unit · integration · contract)
+ruff check .         # lint
+mypy app tests       # type-check
+
+# Frontend (from frontend/)
+npm run lint
+npm run typecheck
+npm run test:run
+npm run build
+
+# Everything at once (from repo root)
+make test
+```
+
+Every provider port ships a shared **contract test** that all its adapters must pass, and the
+`.env`-only provider swap is itself an automated test. CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
+runs the backend, frontend, Docker image build, and a security job (pip-audit, npm audit, gitleaks)
+on every push and PR to `main`. See [Testing Strategy](docs/27_Testing_Strategy.md).
+
+---
+
+## Documentation
+
+The complete design lives in [`docs/`](docs/):
+
+- [00 — Project Roadmap](docs/00_Project_Roadmap.md)
+- [01 — Project Vision](docs/01_Project_Vision.md)
+- [02 — Software Requirements Specification](docs/02_Software_Requirements_Specification.md)
+- [03 — System Architecture](docs/03_System_Architecture.md)
+- [04 — High-Level Architecture](docs/04_High_Level_Architecture.md)
+- [05 — Low-Level Architecture](docs/05_Low_Level_Architecture.md)
+- [06 — Folder Structure](docs/06_Folder_Structure.md)
+- [07 — Backend Architecture](docs/07_Backend_Architecture.md)
+- [08 — Frontend Architecture](docs/08_Frontend_Architecture.md)
+- [09 — AI Architecture](docs/09_AI_Architecture.md)
+- [10 — Model Training](docs/10_Model_Training.md)
+- [11 — Model Inference](docs/11_Model_Inference.md)
+- [12 — Grad-CAM](docs/12_GradCAM.md)
+- [13 — RAG Architecture](docs/13_RAG_Architecture.md)
+- [14 — Vector Database](docs/14_Vector_Database.md)
+- [15 — Embedding System](docs/15_Embedding_System.md)
+- [16 — AI Providers](docs/16_AI_Providers.md)
+- [17 — Database Design](docs/17_Database_Design.md)
+- [18 — API Design](docs/18_API_Design.md)
+- [19 — Authentication](docs/19_Authentication.md)
+- [20 — Authorization / RBAC](docs/20_Authorization_RBAC.md)
+- [21 — UI/UX Guidelines](docs/21_UI_UX_Guidelines.md)
+- [22 — Design System](docs/22_Design_System.md)
+- [23 — Security](docs/23_Security.md)
+- [24 — Logging](docs/24_Logging.md)
+- [25 — Monitoring](docs/25_Monitoring.md)
+- [26 — Background Jobs](docs/26_Background_Jobs.md)
+- [27 — Testing Strategy](docs/27_Testing_Strategy.md)
+- [28 — Deployment](docs/28_Deployment.md)
+- [29 — Docker](docs/29_Docker.md)
+- [30 — CI/CD](docs/30_CICD.md)
+- [31 — Environment Configuration](docs/31_Environment_Configuration.md)
+- [32 — Coding Standards](docs/32_Coding_Standards.md)
+- [33 — Project Report](docs/33_Project_Report.md)
+- [34 — Developer Guide](docs/34_Developer_Guide.md)
+- [35 — Contribution Guide](docs/35_Contribution_Guide.md)
+- [36 — Troubleshooting](docs/36_Troubleshooting.md)
+- [37 — Future Roadmap](docs/37_Future_Roadmap.md)
 
 ---
 
 ## Roadmap
 
-Delivery is phased: **Phase 0** foundations & documentation, **Phase 1** MVP
-vertical slice (auth → classify → Grad-CAM → report → UI), **Phase 2** capability
-expansion (RAG, documents, analytics, provider adapters), **Phase 3** hardening &
-deployment (security, observability, containers, DR). See the
-[Project Roadmap](docs/00_Project_Roadmap.md) and post-1.0 direction in the
-[Future Roadmap](docs/37_Future_Roadmap.md).
-
----
-
-## Disclaimer
-
-AIMIP is a clinical **decision-support** tool, **not** a medical device. Its
-outputs are **informational and not a diagnosis** — a licensed clinician must
-review all results. No PHI should be uploaded without consent, and the platform is
-**not** FDA/CE cleared.
+Planned extensions (full detail in [Future Roadmap](docs/37_Future_Roadmap.md)) include additional
+auth providers (OAuth2, Keycloak), blob storage adapters (S3), managed vector stores (Pinecone),
+multi-disease classification beyond pneumonia, streaming report generation, and OpenTelemetry
+tracing wired to a collector.
 
 ---
 
 ## License
 
-Released under the [MIT License](LICENSE). Copyright (c) 2026 DTable Analytics.
+Released under the **MIT License** — `Copyright (c) 2026 DTable Analytics`. See [LICENSE](LICENSE).
+
+---
+
+> **Disclaimer.** AIMIP is clinical **decision-support**, **not a medical device**. Predictions,
+> Grad-CAM overlays, reports, and chat answers are **informational, not a diagnosis**; a licensed
+> clinician must review all results. The platform is **not FDA/CE cleared**, and no PHI should be
+> uploaded without consent.

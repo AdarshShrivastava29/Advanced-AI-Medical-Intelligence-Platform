@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Response, status
 
 from app.application.services.chat_service import ChatService
+from app.core.metrics import record_rag_query
 from app.interface.dependencies import CurrentUser, get_chat_service
 from app.interface.schemas.chat import (
     ChatMessageSchema,
@@ -29,6 +30,7 @@ async def chat(
     answer, assistant = await service.ask(
         user_id=current_user.id or "", message=payload.message, session_id=payload.session_id
     )
+    record_rag_query(grounded=answer.grounded)
     return to_chat_response(answer, assistant.id or "")
 
 
