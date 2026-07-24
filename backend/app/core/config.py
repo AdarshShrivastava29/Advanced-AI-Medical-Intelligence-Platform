@@ -58,8 +58,6 @@ class Settings(BaseSettings):
     gzip_min_bytes: int = 1024
     metrics_enabled: bool = True
     warmup_on_startup: bool = False  # eagerly warm model + vector index at boot
-    otel_enabled: bool = False
-    otel_exporter_endpoint: str = ""
 
     # --- Provider selectors ---
     llm_provider: Literal["openai", "gemini", "mock"] = "openai"

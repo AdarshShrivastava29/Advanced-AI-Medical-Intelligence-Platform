@@ -61,6 +61,5 @@ httpx==0.28.1
 pytest==8.3.4
 pytest-asyncio==0.25.2
 asgi-lifespan==2.1.0
-mongomock-motor==0.0.35
 ruff==0.9.2
 mypy==1.14.1
