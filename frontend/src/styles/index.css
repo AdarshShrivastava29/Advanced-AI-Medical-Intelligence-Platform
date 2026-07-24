@@ -3,8 +3,53 @@
 @tailwind utilities;
 
 @layer base {
+  /* Themed surface ramp consumed by the `canvas`/`surface`/`line`/`fg` Tailwind
+     aliases (see tailwind.config.js). Values are space-separated RGB channels so
+     Tailwind can apply its own alpha.
+
+     Light: #F5F8FC canvas on #FFFFFF cards — clinical, near-white, low glare.
+     Dark:  #0F172A canvas, #172033 muted, #1E293B cards — elegant navy, never
+            pure black, so radiology imagery stays the brightest thing on screen. */
   :root {
-    color-scheme: light dark;
+    --c-canvas: 245 248 252;
+    --c-surface: 255 255 255;
+    --c-surface-muted: 248 250 253;
+    --c-surface-raised: 255 255 255;
+    --c-surface-sunken: 238 243 249;
+    --c-line: 223 231 240;
+    --c-line-strong: 195 208 224;
+    --c-fg: 14 27 46;
+    /* Both muted tones clear 4.5:1 on `surface` AND on `surface-sunken`, since
+       captions routinely sit inside sunken wells (WCAG AA, normal text). */
+    --c-fg-muted: 74 90 115;
+    --c-fg-subtle: 90 107 132;
+
+    --glass-bg: 255 255 255;
+    --glass-bg-opacity: 0.86;
+    --glass-border: 223 231 240;
+    --glass-border-opacity: 1;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --c-canvas: 15 23 42;
+    --c-surface: 30 41 59;
+    --c-surface-muted: 23 32 51;
+    --c-surface-raised: 35 49 73;
+    --c-surface-sunken: 17 25 41;
+    --c-line: 42 58 82;
+    --c-line-strong: 58 77 104;
+    --c-fg: 232 238 247;
+    --c-fg-muted: 159 176 200;
+    --c-fg-subtle: 139 156 181;
+
+    --glass-bg: 23 32 51;
+    --glass-bg-opacity: 0.88;
+    --glass-border: 42 58 82;
+    --glass-border-opacity: 1;
+
+    color-scheme: dark;
   }
 
   html,
@@ -13,26 +58,51 @@
     height: 100%;
   }
 
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-canvas text-fg antialiased;
     font-family: 'Inter', system-ui, 'Segoe UI', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+    text-rendering: optimizeLegibility;
   }
 
-  .dark body {
-    @apply bg-slate-950 text-slate-100;
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight text-fg;
+    font-feature-settings: 'ss01';
   }
 
-  /* Accessible focus ring for keyboard navigation. */
+  /* Accessible focus ring for keyboard navigation (WCAG 2.4.7). */
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-950;
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-canvas;
+  }
+
+  /* Pointer interactions should not paint the ring — keyboard users only. */
+  :focus:not(:focus-visible) {
+    @apply outline-none ring-0;
+  }
+
+  ::selection {
+    @apply bg-brand-500/25;
   }
 
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-slate-300 dark:bg-slate-700;
+    @apply rounded-full border-[3px] border-solid border-transparent bg-line-strong bg-clip-content;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-fg-subtle bg-clip-content;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -40,30 +110,158 @@
     *::before,
     *::after {
       animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }
 
 @layer components {
-  /* Glassmorphism surface — see docs/22_Design_System.md. */
+  /* ---- Surfaces ------------------------------------------------------- */
+
+  /* The default enterprise surface: opaque card, hairline border, soft shadow. */
+  .surface-card {
+    @apply rounded-2xl border border-line bg-surface shadow-card;
+  }
+
+  /* Frosted surface — reserved for floating chrome and the auth panel. Kept
+     near-opaque so clinical text never loses contrast over imagery. */
   .glass-card {
-    @apply rounded-2xl border border-white/40 bg-white/70 shadow-glass backdrop-blur-glass;
+    @apply rounded-2xl border shadow-glass backdrop-blur-glass;
+    background-color: rgb(var(--glass-bg) / var(--glass-bg-opacity));
+    border-color: rgb(var(--glass-border) / var(--glass-border-opacity));
   }
 
-  .dark .glass-card {
-    @apply border-white/10 bg-white/[0.04];
+  /* Chrome bars (sidebar / topbar). */
+  .glass-chrome {
+    @apply border-line backdrop-blur-glass;
+    background-color: rgb(var(--glass-bg) / 0.92);
   }
 
+  /* Whole-page atmosphere: a barely-there clinical wash, no colour banding. */
   .app-gradient {
-    @apply bg-gradient-to-br from-brand-50 via-white to-teal-400/10 dark:from-slate-950 dark:via-slate-900 dark:to-brand-900/20;
+    @apply bg-canvas;
+    background-image:
+      radial-gradient(56rem 32rem at 8% -6%, rgb(54 122 188 / 0.06), transparent 62%),
+      radial-gradient(44rem 30rem at 100% 0%, rgb(31 122 140 / 0.05), transparent 58%);
+    background-attachment: fixed;
   }
 
-  /* Skeleton shimmer block. */
+  .dark .app-gradient {
+    background-image:
+      radial-gradient(56rem 32rem at 8% -6%, rgb(54 122 188 / 0.14), transparent 62%),
+      radial-gradient(44rem 30rem at 100% 0%, rgb(31 122 140 / 0.10), transparent 58%);
+  }
+
+  /* Deep navy hero used by the auth split-screen and dashboard hero. */
+  .clinical-hero {
+    @apply relative overflow-hidden;
+    background-image: linear-gradient(135deg, #0a2138 0%, #0f4c81 48%, #1c6373 100%);
+  }
+
+  /* Radiology plate: near-black frame that makes X-ray imagery read correctly
+     in both themes. */
+  .radiology-plate {
+    @apply overflow-hidden rounded-xl border border-line;
+    background-color: #060b14;
+  }
+
+  /* ---- Typography helpers -------------------------------------------- */
+
+  /* Uppercase micro-caption used for clinical field labels. */
+  .medical-label {
+    @apply text-label font-semibold uppercase text-fg-subtle;
+  }
+
+  /* Hairline rule with a soft fade at both ends. */
+  .rule-fade {
+    @apply h-px w-full border-0;
+    background-image: linear-gradient(
+      to right,
+      transparent,
+      rgb(var(--c-line)) 12%,
+      rgb(var(--c-line)) 88%,
+      transparent
+    );
+  }
+
+  /* ---- Loading -------------------------------------------------------- */
+
   .skeleton {
-    @apply relative overflow-hidden rounded-md bg-slate-200/70 dark:bg-slate-800/70;
+    @apply relative overflow-hidden rounded-md bg-line/70;
   }
   .skeleton::after {
-    @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent content-[''] dark:via-white/10;
+    @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/50 to-transparent content-[''] dark:via-white/[0.06];
+  }
+
+  /* ---- Motion --------------------------------------------------------- */
+
+  /* Card lift used by interactive tiles and list rows. */
+  .lift {
+    @apply transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-card-hover;
+  }
+}
+
+@layer utilities {
+  /* Numeric alignment for metrics/tables. */
+  .nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Hide scrollbars on horizontally scrollable chrome (tab rails, chip rows). */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Fade the bottom edge of a scroll region (chat, long lists). */
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 88%, transparent 100%);
+  }
+}
+
+/* Print: reports render as clean hospital documents — no chrome, no dark
+   surfaces, no shadows, black text on white. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .app-gradient,
+  .clinical-hero {
+    background: #fff !important;
+    background-image: none !important;
+  }
+
+  .surface-card,
+  .glass-card,
+  .print-sheet {
+    border-color: #d4d4d8 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    backdrop-filter: none !important;
+  }
+
+  .print-sheet {
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  a[href]::after {
+    content: '';
   }
 }

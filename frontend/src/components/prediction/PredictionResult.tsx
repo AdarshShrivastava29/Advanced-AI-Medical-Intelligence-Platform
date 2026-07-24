@@ -1,17 +1,30 @@
 import { motion } from 'framer-motion';
-import { Activity, ShieldAlert, Share2 } from 'lucide-react';
+import {
+  Activity,
+  Brain,
+  CheckCircle2,
+  Clock,
+  Cpu,
+  FileText,
+  Gauge,
+  ScanEye,
+  Share2,
+  ShieldAlert,
+  ShieldCheck,
+} from 'lucide-react';
 
 import { GradCamViewer } from '@/components/prediction/GradCamViewer';
 import { ProbabilityBreakdown } from '@/components/prediction/ProbabilityBreakdown';
 import { ReportView } from '@/components/prediction/ReportView';
-import { ClassBadge } from '@/components/ui/Badge';
+import { Alert } from '@/components/ui/Alert';
+import { Badge, RiskBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
-import { ConfidenceMeter } from '@/components/ui/ConfidenceMeter';
+import { RadialGauge } from '@/components/ui/Progress';
 import { shareResult } from '@/lib/download';
-import { percent } from '@/lib/utils';
+import { cn, formatDate, percent } from '@/lib/utils';
 import { useToast } from '@/store/toastStore';
-import type { PredictionResponse } from '@/types/api';
+import type { PredictionResponse, RiskLevel } from '@/types/api';
 
 interface PredictionResultProps {
   prediction: PredictionResponse;
@@ -19,76 +32,248 @@ interface PredictionResultProps {
   regenerating?: boolean;
 }
 
-/** Full prediction result: verdict, explainability, probabilities and report. */
-export function PredictionResult({ prediction, onRegenerateReport, regenerating }: PredictionResultProps) {
+/**
+ * Derive a display risk level when no report exists. The report's own
+ * `risk_level` always wins when present — this is only a UI fallback.
+ */
+function fallbackRisk(prediction: PredictionResponse): RiskLevel {
+  const isPneumonia = prediction.predicted_class.toUpperCase() === 'PNEUMONIA';
+  if (!isPneumonia) return 'low';
+  return prediction.confidence >= 0.85 ? 'high' : 'moderate';
+}
+
+/** Full study result: verdict, confidence, explainability and clinical report. */
+export function PredictionResult({
+  prediction,
+  onRegenerateReport,
+  regenerating,
+}: PredictionResultProps) {
   const toast = useToast();
   const isPneumonia = prediction.predicted_class.toUpperCase() === 'PNEUMONIA';
+  const risk = prediction.report?.risk_level ?? fallbackRisk(prediction);
+  const gaugeTone = isPneumonia ? 'red' : 'green';
+
+  const metadata = [
+    { Icon: Cpu, label: 'Model', value: prediction.model_arch },
+    { Icon: Brain, label: 'Version', value: prediction.model_version },
+    { Icon: Clock, label: 'Analysed', value: formatDate(prediction.created_at) },
+    { Icon: FileText, label: 'Study ID', value: prediction.id.slice(0, 12).toUpperCase() },
+  ];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-6"
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="space-y-5"
     >
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className={`grid h-14 w-14 place-items-center rounded-2xl ${isPneumonia ? 'bg-risk-high/10 text-risk-high' : 'bg-risk-low/10 text-risk-low'}`}>
-              <Activity size={26} aria-hidden />
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold">{prediction.predicted_class}</h2>
-                <ClassBadge label={prediction.predicted_class} />
+      {/* ---------------- Verdict banner ---------------- */}
+      <Card padding="none" className="overflow-hidden">
+        <div
+          className={cn(
+            'h-1',
+            isPneumonia ? 'bg-gradient-to-r from-danger-500 to-danger-600' : 'bg-gradient-to-r from-success-500 to-success-600',
+          )}
+          aria-hidden
+        />
+
+        <div className="grid gap-6 p-6 sm:p-7 lg:grid-cols-[auto_1fr_auto] lg:items-center">
+          {/* Confidence gauge */}
+          <div className="flex justify-center lg:justify-start">
+            <RadialGauge value={prediction.confidence} tone={gaugeTone} size={132} thickness={9}>
+              <div>
+                <p className="font-display text-2xl font-bold leading-none text-fg nums">
+                  {percent(prediction.confidence, 0)}
+                </p>
+                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-fg-subtle">
+                  Confidence
+                </p>
               </div>
-              <p className="text-sm text-slate-500">
-                Confidence {percent(prediction.confidence)} · {prediction.model_arch}
-              </p>
-            </div>
+            </RadialGauge>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={async () => {
-              const result = await shareResult('AIMIP Prediction', `${prediction.predicted_class} (${percent(prediction.confidence)})`);
-              if (result === 'copied') toast.success('Link copied to clipboard');
-              else if (result === 'shared') toast.success('Shared');
-            }}
-          >
-            <Share2 size={14} /> Share
-          </Button>
+
+          {/* Verdict */}
+          <div className="min-w-0 text-center lg:text-left">
+            <p className="medical-label">Classification result</p>
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+              <span
+                className={cn(
+                  'grid h-11 w-11 shrink-0 place-items-center rounded-xl',
+                  isPneumonia
+                    ? 'bg-danger-500/12 text-danger-600 dark:text-danger-500'
+                    : 'bg-success-500/12 text-success-600 dark:text-success-500',
+                )}
+                aria-hidden
+              >
+                {isPneumonia ? <Activity size={22} /> : <CheckCircle2 size={22} />}
+              </span>
+              <h2 className="font-display text-display-sm font-bold text-fg">
+                {prediction.predicted_class}
+              </h2>
+              <RiskBadge level={risk} />
+            </div>
+            <p className="mt-2.5 text-sm leading-relaxed text-fg-muted">
+              {isPneumonia
+                ? 'Findings consistent with pneumonia were localised in this study. Correlate clinically and confirm against the activation map below.'
+                : 'No pneumonia pattern was detected in this study. Review the activation map to confirm the model attended to lung fields.'}
+            </p>
+
+            <dl className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2.5 lg:justify-start">
+              {metadata.map((entry) => (
+                <div key={entry.label} className="flex items-center gap-1.5 text-xs">
+                  <entry.Icon size={13} className="shrink-0 text-fg-subtle" aria-hidden />
+                  <dt className="text-fg-subtle">{entry.label}:</dt>
+                  <dd className="font-medium text-fg">{entry.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-row justify-center gap-2 lg:flex-col">
+            <Button
+              variant="secondary"
+              size="sm"
+              leadingIcon={<Share2 size={14} />}
+              onClick={async () => {
+                const result = await shareResult(
+                  'AIMIP study result',
+                  `${prediction.predicted_class} (${percent(prediction.confidence)})`,
+                );
+                if (result === 'copied') toast.success('Link copied to clipboard');
+                else if (result === 'shared') toast.success('Shared');
+                else toast.error('Sharing was cancelled');
+              }}
+            >
+              Share
+            </Button>
+            <Badge tone={prediction.ood_flag ? 'amber' : 'green'} size="sm" className="justify-center">
+              {prediction.ood_flag ? (
+                <>
+                  <ShieldAlert size={11} aria-hidden /> In review
+                </>
+              ) : (
+                <>
+                  <ShieldCheck size={11} aria-hidden /> In distribution
+                </>
+              )}
+            </Badge>
+          </div>
         </div>
 
         {prediction.ood_flag && (
-          <div className="mt-4 flex items-start gap-2 rounded-xl bg-risk-moderate/10 p-3 text-sm text-risk-moderate">
-            <ShieldAlert size={18} className="mt-0.5 shrink-0" aria-hidden />
-            <span>
-              This image was flagged as possibly out-of-distribution (it may not be a standard chest
-              X-ray). Interpret the result with extra caution.
-            </span>
+          <div className="border-t border-line px-6 pb-6 sm:px-7">
+            <Alert
+              tone="warning"
+              title="Out-of-distribution study"
+              className="mt-5"
+            >
+              This image sits outside the model&apos;s training distribution — it may not be a standard
+              frontal chest radiograph. Treat the classification and confidence above as unreliable
+              until a clinician has reviewed the source image.
+            </Alert>
           </div>
         )}
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <CardHeader title="Explainability" subtitle="Grad-CAM localisation" />
+      {/* ---------------- Explainability + probabilities ---------------- */}
+      <div className="grid gap-5 xl:grid-cols-5">
+        <Card className="xl:col-span-3">
+          <CardHeader
+            eyebrow="Explainability"
+            title="Grad-CAM localisation"
+            subtitle="Where the model looked when it made this call"
+            icon={<ScanEye size={19} />}
+            divided
+          />
           <GradCamViewer gradcam={prediction.gradcam} predictionId={prediction.id} />
         </Card>
-        <Card className="lg:col-span-2">
-          <CardHeader title="Probability breakdown" subtitle="Softmax over classes" />
-          <ProbabilityBreakdown probabilities={prediction.probabilities} predictedClass={prediction.predicted_class} />
-          <div className="mt-6 border-t border-slate-200/60 pt-4 dark:border-white/10">
-            <ConfidenceMeter label="Overall confidence" value={prediction.confidence} tone={isPneumonia ? 'red' : 'green'} />
-          </div>
-        </Card>
+
+        <div className="space-y-5 xl:col-span-2">
+          <Card>
+            <CardHeader
+              eyebrow="Model output"
+              title="Class probabilities"
+              subtitle="Softmax distribution across classes"
+              icon={<Gauge size={19} />}
+              divided
+            />
+            <ProbabilityBreakdown
+              probabilities={prediction.probabilities}
+              predictedClass={prediction.predicted_class}
+            />
+
+            <div className="mt-6 rounded-xl bg-surface-muted p-4">
+              <p className="medical-label mb-2">How to read this</p>
+              <p className="text-xs leading-relaxed text-fg-muted">
+                Probabilities are the model&apos;s calibrated belief across classes, not a diagnosis.
+                A narrow margin between classes indicates a borderline study that warrants closer
+                review.
+              </p>
+            </div>
+          </Card>
+
+          <Card>
+            <CardHeader eyebrow="Governance" title="Review checklist" icon={<ShieldCheck size={19} />} divided />
+            <ul className="space-y-2.5 text-sm">
+              {[
+                'Confirm the activation map covers lung fields, not artefacts or annotations.',
+                'Correlate the finding with presentation, history and prior imaging.',
+                'Record your assessment in the reporting system of record.',
+              ].map((item) => (
+                <li key={item} className="flex gap-2.5">
+                  <span
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-700 dark:bg-accent-400"
+                    aria-hidden
+                  />
+                  <span className="leading-relaxed text-fg-muted">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
       </div>
 
-      {prediction.report && (
+      {/* ---------------- Clinical report ---------------- */}
+      {prediction.report ? (
         <Card>
-          <CardHeader title="AI medical report" subtitle="Generated via the LLM provider abstraction" />
-          <ReportView report={prediction.report} onRegenerate={onRegenerateReport} regenerating={regenerating} />
+          <CardHeader
+            eyebrow="Clinical documentation"
+            title="AI-drafted report"
+            subtitle="Grounded in your indexed medical literature"
+            icon={<FileText size={19} />}
+            divided
+            className="no-print"
+          />
+          <ReportView
+            report={prediction.report}
+            onRegenerate={onRegenerateReport}
+            regenerating={regenerating}
+            studyId={prediction.id}
+            modelLabel={`${prediction.model_arch} · ${prediction.model_version}`}
+          />
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader
+            eyebrow="Clinical documentation"
+            title="Report unavailable"
+            subtitle="No narrative report was generated for this study"
+            icon={<FileText size={19} />}
+            divided
+          />
+          <Alert tone="clinical">
+            The classification and Grad-CAM output above are complete. A narrative report was not
+            produced — this usually means the reporting provider was unavailable at analysis time.
+            {onRegenerateReport && ' You can generate one now.'}
+          </Alert>
+          {onRegenerateReport && (
+            <div className="mt-4">
+              <Button size="sm" onClick={onRegenerateReport} loading={regenerating}>
+                Generate report
+              </Button>
+            </div>
+          )}
         </Card>
       )}
     </motion.div>

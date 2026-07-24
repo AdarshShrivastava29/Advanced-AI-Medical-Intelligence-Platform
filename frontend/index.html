@@ -8,7 +8,32 @@
       name="description"
       content="Advanced AI Medical Intelligence Platform — clinical decision-support (not a medical device)."
     />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f8fc" media="(prefers-color-scheme: light)" />
     <title>AIMIP — AI Medical Intelligence Platform</title>
+
+    <!-- Typography: Inter (UI/body) + Plus Jakarta Sans (display headings). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+    />
+
+    <script>
+      // Apply the persisted theme before first paint so a light-mode user never
+      // sees a dark flash. Mirrors the zustand `aimip-theme` persist key; the
+      // store re-applies the same class on hydration.
+      (function () {
+        try {
+          var raw = localStorage.getItem('aimip-theme');
+          var theme = raw ? JSON.parse(raw).state.theme : 'dark';
+          document.documentElement.classList.toggle('dark', theme === 'dark');
+        } catch (e) {
+          /* fall back to the `dark` class already on <html> */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

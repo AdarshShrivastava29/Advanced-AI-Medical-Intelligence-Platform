@@ -23,5 +23,18 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        // Split the large, rarely-changing vendors into their own long-lived
+        // chunks so a UI change does not invalidate the whole bundle.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-charts': ['recharts'],
+          'vendor-markdown': ['react-markdown', 'remark-gfm'],
+          'vendor-data': ['@tanstack/react-query', 'axios', 'zustand'],
+        },
+      },
+    },
   },
 });
