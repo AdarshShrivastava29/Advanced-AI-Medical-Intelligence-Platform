@@ -1,0 +1,22 @@
+# Netlify build & deploy configuration for the AIMIP frontend.
+# The site builds from the `frontend/` directory of the repo.
+
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# SPA fallback: React Router uses BrowserRouter, so deep links (e.g. /history)
+# must serve index.html instead of 404ing on a hard refresh.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# Baseline security headers for the static assets.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
