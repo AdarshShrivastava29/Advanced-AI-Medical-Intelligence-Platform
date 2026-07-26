@@ -37,7 +37,7 @@ export const ParticleField = memo(function ParticleField({ className }: { classN
           cy={particle.y}
           r={particle.r / 4}
           fill="currentColor"
-          initial={{ opacity: 0.2 }}
+          initial={{ opacity: 0.2, r: particle.r / 4, cy: particle.y }}
           animate={
             reduceMotion
               ? { opacity: 0.28 }

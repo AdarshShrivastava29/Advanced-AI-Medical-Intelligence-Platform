@@ -125,7 +125,7 @@ export function RadialGauge({
           strokeLinecap="round"
           strokeDasharray={circumference}
           className={strokeTone[tone]}
-          initial={{ strokeDashoffset: circumference }}
+          initial={{ strokeDashoffset: circumference, r: radius }}
           animate={{ strokeDashoffset: circumference * (1 - clamped) }}
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
         />

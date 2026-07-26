@@ -65,7 +65,7 @@ export const NeuralNetwork = memo(function NeuralNetwork({ className }: { classN
             cx={node.x}
             cy={node.y}
             r={4}
-            initial={{ opacity: 0.4 }}
+            initial={{ opacity: 0.4, r: 4 }}
             animate={reduceMotion ? { opacity: 0.55 } : { opacity: [0.35, 0.95, 0.35], r: [3.6, 4.6, 3.6] }}
             transition={
               reduceMotion
