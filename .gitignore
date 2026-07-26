@@ -73,6 +73,16 @@ yarn-error.log*
 pnpm-debug.log*
 .eslintcache
 
+# The Python "lib/" / "lib64/" rules above are unanchored and match ANY directory
+# named lib — including the frontend source dir frontend/src/lib. Re-include it so
+# the API client, utils, health and provider modules are committed and available
+# to CI/Netlify builds. Keep this negation AFTER the Python section.
+!frontend/src/lib/
+
+# TypeScript incremental build caches are per-machine artifacts; never commit them
+# (a stale cache breaks `tsc -b` type-checking on a clean checkout).
+*.tsbuildinfo
+
 # ---- ML / data artifacts (never commit large binaries or PHI) --------------
 data/
 !data/.gitkeep
