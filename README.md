@@ -449,7 +449,7 @@ tracing wired to a collector.
 
 ## License
 
-Released under the **MIT License** — `Copyright (c) 2026 DTable Analytics`. See [LICENSE](LICENSE).
+Released under the **MIT License** — `Copyright (c) 2026 Adarsh Shrivastava`. See [LICENSE](LICENSE).
 
 ---
 
